@@ -1386,12 +1386,12 @@ function ConfirmModal({
     () =>
       type === "yes"
         ? {
-            title: "Thank you for your confirmation! 🤍",
-            body: "We’re so excited to celebrate with you. The official invitation, venue address, and complete event details will be shared approximately 3 months before the wedding.",
+            title: "RSVP confirmed",
+            body: "Guest pass ready. Simpan QR untuk check-in.",
           }
         : {
-            title: "Thank you for letting us know",
-            body: "We truly appreciate your response and hope to celebrate with you another time. 🤍",
+            title: "Response saved",
+            body: "Terima kasih atas konfirmasinya.",
           },
     [type],
   );
@@ -1401,55 +1401,51 @@ function ConfirmModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 px-4 py-8"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 px-4 py-6"
       onClick={onClose}
     >
       <div
         onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-xl rounded-[18px] border border-border bg-card p-8 text-center shadow-2xl md:p-10"
+        className="w-full max-w-sm rounded-[20px] border border-border bg-card p-5 text-center shadow-2xl sm:p-6"
       >
-        <div className="flex justify-center">
-          <Monogram />
-        </div>
-        <div className="mt-5 flex justify-center">
-          <Hairline />
-        </div>
-        <h3
-          id="confirm-title"
-          className="mt-6 font-serif text-2xl leading-tight text-charcoal md:text-3xl"
-        >
+        <p className="text-[0.62rem] font-medium uppercase tracking-[0.34em] text-taupe">L & A</p>
+        <h3 id="confirm-title" className="mt-3 font-serif text-2xl leading-tight text-charcoal">
           {content.title}
         </h3>
-        <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-          {content.body}
-        </p>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{content.body}</p>
         {type === "yes" && guestPass && (
-          <div className="mt-6 rounded-[18px] border border-[rgba(200,182,153,0.28)] bg-cream/40 p-5">
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.26em] text-taupe">
-              Your Guest Pass
-            </p>
+          <div className="mt-5 rounded-[18px] border border-[rgba(200,182,153,0.28)] bg-cream/40 p-4">
             <img
               src={guestPass.qrCodeDataUrl}
               alt="Guest QR code"
-              className="mx-auto mt-4 w-full max-w-[220px] rounded-[16px] border border-[rgba(200,182,153,0.24)] bg-white p-3"
+              className="mx-auto w-full max-w-[180px] rounded-[16px] border border-[rgba(200,182,153,0.24)] bg-white p-2.5"
             />
-            <p className="mt-4 text-[0.7rem] uppercase tracking-[0.24em] text-taupe">
-              Guest Code {guestPass.guestCode}
+            <p className="mt-3 text-[0.68rem] uppercase tracking-[0.24em] text-taupe">
+              {guestPass.guestCode}
             </p>
-            <a
-              href={guestPass.passUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-flex items-center justify-center rounded-full bg-charcoal px-5 py-3 text-[0.68rem] font-medium uppercase tracking-[0.24em] text-ivory transition-colors hover:bg-charcoal/92"
-            >
-              Open Guest Pass
-            </a>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <a
+                href={guestPass.qrCodeDataUrl}
+                download={`${guestPass.guestCode}-qr.png`}
+                className="inline-flex items-center justify-center rounded-full border border-charcoal/15 bg-white px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-charcoal transition-colors hover:bg-cream"
+              >
+                Download QR
+              </a>
+              <a
+                href={guestPass.passUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-full bg-charcoal px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-charcoal/92"
+              >
+                Open Pass
+              </a>
+            </div>
           </div>
         )}
         <button
           type="button"
           onClick={onClose}
-          className="mt-8 inline-flex items-center gap-3 rounded-[6px] border border-charcoal px-6 py-3 text-[0.7rem] font-medium uppercase tracking-[0.3em] text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
+          className="mt-5 inline-flex items-center rounded-full border border-charcoal/20 px-4 py-2 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
         >
           Close
         </button>

@@ -61,6 +61,24 @@ class RsvpMailService
             $mailer->addAddress($to);
             $mailer->Subject = $subject;
             $mailer->isHTML(true);
+            $templateData['qrCodeImageSrc'] = '';
+
+            $qrPayload = trim((string) ($templateData['qrCodePayload'] ?? ''));
+            if ($qrPayload !== '') {
+                $guestCode = trim((string) ($templateData['guestCode'] ?? 'guest-pass'));
+                $embeddedImageCid = 'guest-pass-qr-' . strtolower(preg_replace('/[^a-z0-9]+/i', '-', $guestCode) ?? 'guest-pass');
+
+                $mailer->addStringEmbeddedImage(
+                    (new QrCodeService())->createPngBinary($qrPayload),
+                    $embeddedImageCid,
+                    'guest-pass-' . ($guestCode !== '' ? $guestCode : 'qr') . '.png',
+                    PHPMailer::ENCODING_BASE64,
+                    'image/png',
+                );
+
+                $templateData['qrCodeImageSrc'] = 'cid:' . $embeddedImageCid;
+            }
+
             $mailer->Body = view('Emails/RsvpInvitation', $templateData);
             $mailer->AltBody = $this->buildPlainTextMessage($templateData);
 
@@ -157,8 +175,8 @@ class RsvpMailService
             ? $guestPassService->buildPassUrl($rsvp)
             : rtrim((string) env('app.frontendUrl', 'http://localhost:5173'), '/') . '/#rsvp';
         $guestCode = (string) ($rsvp['guest_code'] ?? '');
-        $qrCodeDataUrl = $guestCode !== '' && trim((string) ($rsvp['qr_token'] ?? '')) !== ''
-            ? $guestPassService->buildQrDataUrl($rsvp)
+        $qrCodePayload = $guestCode !== '' && trim((string) ($rsvp['qr_token'] ?? '')) !== ''
+            ? $guestPassService->buildQrPayload($rsvp)
             : '';
 
         return [
@@ -175,7 +193,8 @@ class RsvpMailService
             'locationLabel'    => 'Jakarta, Indonesia',
             'buttonUrl'        => $buttonUrl,
             'buttonLabel'      => 'Open Guest Pass',
-            'qrCodeDataUrl'    => $qrCodeDataUrl,
+            'qrCodePayload'    => $qrCodePayload,
+            'qrCodeImageSrc'   => '',
             'submittedLabel'   => $isUpdate
                 ? 'This email confirms that your RSVP details have been updated successfully.'
                 : 'This email confirms that your RSVP has been received successfully.',

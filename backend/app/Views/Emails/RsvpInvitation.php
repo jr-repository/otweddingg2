@@ -23,11 +23,11 @@ $eventList = is_array($events ?? null) ? $events : [];
                         </td>
                     </tr>
 
-                    <?php if (! empty($qrCodeDataUrl)): ?>
+                    <?php if (! empty($qrCodeImageSrc)): ?>
                         <tr>
                             <td align="center" style="padding:28px 28px 18px 28px;">
                                 <img
-                                    src="<?= esc($qrCodeDataUrl) ?>"
+                                    src="<?= esc($qrCodeImageSrc) ?>"
                                     alt="Guest QR code"
                                     width="220"
                                     height="220"
