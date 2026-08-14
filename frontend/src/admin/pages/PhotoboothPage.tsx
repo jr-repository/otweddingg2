@@ -23,7 +23,7 @@ export function PhotoboothPage({
 }) {
   return (
     <section className="space-y-4">
-      <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+      <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] max-[450px]:rounded-[26px] max-[450px]:border-[rgba(200,182,153,0.2)] max-[450px]:bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,245,239,0.94))] max-[450px]:p-3.5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-taupe">
@@ -35,8 +35,11 @@ export function PhotoboothPage({
             </p>
           </div>
 
-          <form onSubmit={onSubmitFilters} className="grid gap-2 sm:grid-cols-3 lg:w-[640px]">
-            <label className="sm:col-span-2">
+          <form
+            onSubmit={onSubmitFilters}
+            className="grid gap-2 sm:grid-cols-3 lg:w-[640px] max-[450px]:rounded-[22px] max-[450px]:border max-[450px]:border-[rgba(200,182,153,0.2)] max-[450px]:bg-[#fcfaf7] max-[450px]:p-3"
+          >
+            <label className="sm:col-span-2 max-[450px]:sm:col-span-1">
               <span className="mb-1.5 block text-[0.58rem] font-medium uppercase tracking-[0.22em] text-taupe">
                 Search
               </span>
@@ -66,13 +69,13 @@ export function PhotoboothPage({
       </div>
 
       {loading && (
-        <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-8 text-center text-[12px] text-muted-foreground shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+        <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-8 text-center text-[12px] text-muted-foreground shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] max-[450px]:rounded-[24px]">
           Loading photobooth results...
         </div>
       )}
 
       {!loading && records.length === 0 && (
-        <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-10 text-center shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+        <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-10 text-center shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] max-[450px]:rounded-[24px]">
           <Images className="mx-auto h-8 w-8 text-taupe/70" />
           <p className="mt-3 text-[12px] uppercase tracking-[0.24em] text-taupe">
             No photobooth results yet
@@ -81,13 +84,13 @@ export function PhotoboothPage({
       )}
 
       {!loading && records.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 max-[450px]:gap-3">
           {records.map((record) => (
             <article
               key={record.id}
-              className="overflow-hidden rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]"
+              className="overflow-hidden rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] max-[450px]:rounded-[24px] max-[450px]:border-[rgba(200,182,153,0.2)] max-[450px]:bg-[#fcfaf7] max-[450px]:shadow-[0_18px_36px_-28px_rgba(63,47,37,0.18)]"
             >
-              <div className="aspect-[4/5] overflow-hidden bg-cream/50">
+              <div className="aspect-[4/5] overflow-hidden bg-cream/50 max-[450px]:aspect-[5/6]">
                 {record.finalImageUrl ? (
                   <img
                     src={record.finalImageUrl}
@@ -101,10 +104,12 @@ export function PhotoboothPage({
                 )}
               </div>
 
-              <div className="space-y-3 px-4 py-4">
+              <div className="space-y-3 px-4 py-4 max-[450px]:space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-[12px] font-medium text-charcoal">{record.guestName}</p>
+                    <p className="text-[12px] font-medium text-charcoal max-[450px]:text-[15px]">
+                      {record.guestName}
+                    </p>
                     <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-taupe">
                       {record.guestCode}
                     </p>
@@ -133,7 +138,7 @@ export function PhotoboothPage({
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-[450px]:grid max-[450px]:grid-cols-2">
                   <a
                     href={record.finalImageUrl}
                     target="_blank"

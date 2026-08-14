@@ -1,4 +1,14 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  Component,
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { Images, LayoutDashboard, LogOut, Menu, RefreshCcw, ScanLine, Users } from "lucide-react";
 
 import { AuthField, SidebarAction, SidebarButton, adminInputCls } from "@/admin/components/AdminUi";
@@ -13,7 +23,7 @@ import type {
   DashboardPayload,
   PhotoboothRecord,
 } from "@/admin/types";
-import { EMPTY_SUMMARY } from "@/admin/utils";
+import { EMPTY_SUMMARY, normalizeAdminRecord, normalizeAdminRecords } from "@/admin/utils";
 import { ADMIN_TOKEN_STORAGE_KEY, API_BASE_URL } from "@/lib/config";
 
 const ScannerPage = lazy(async () =>
@@ -22,6 +32,51 @@ const ScannerPage = lazy(async () =>
 
 const DEFAULT_ADMIN_USERNAME = "admin";
 const DEFAULT_ADMIN_PASSWORD = "LNA2027Admin!";
+
+class AdminViewErrorBoundary extends Component<
+  {
+    children: ReactNode;
+    title?: string;
+  },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("Admin view render error:", error);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="rounded-[20px] border border-destructive/20 bg-white px-5 py-6 text-charcoal shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+          <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-taupe">
+            Frontend Guard
+          </p>
+          <h3 className="mt-2 font-serif text-2xl leading-tight">
+            {this.props.title ?? "This admin section could not be rendered"}
+          </h3>
+          <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
+            {this.state.error.message || "Unexpected frontend render error."}
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 inline-flex items-center rounded-full bg-charcoal px-4 py-2 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory"
+          >
+            Reload Section
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 function readStoredAdminToken() {
   if (typeof window === "undefined") return "";
@@ -282,6 +337,37 @@ function AdminWorkspace({
   const [exporting, setExporting] = useState<"" | "excel" | "pdf">("");
   const [generatingGuestId, setGeneratingGuestId] = useState<number | null>(null);
   const [sidebarCompact, setSidebarCompact] = useState(false);
+  const navItems: Array<{
+    view: AdminView;
+    label: string;
+    shortLabel: string;
+    icon: ReactNode;
+  }> = [
+    {
+      view: "overview",
+      label: "Overview",
+      shortLabel: "Home",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      view: "guests",
+      label: "Guest List",
+      shortLabel: "Guests",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      view: "scanner",
+      label: "Venue Scanner",
+      shortLabel: "Scan",
+      icon: <ScanLine className="h-4 w-4" />,
+    },
+    {
+      view: "photobooth",
+      label: "Photobooth",
+      shortLabel: "Booth",
+      icon: <Images className="h-4 w-4" />,
+    },
+  ];
 
   const loadDashboard = useCallback(
     async (filters?: { search?: string; attending?: string; event?: string }) => {
@@ -309,7 +395,7 @@ function AdminWorkspace({
 
         setDashboard({
           summary: data.summary ?? EMPTY_SUMMARY,
-          records: Array.isArray(data.records) ? data.records : [],
+          records: normalizeAdminRecords(data.records),
         });
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : "Unable to load dashboard.");
@@ -478,12 +564,14 @@ function AdminWorkspace({
 
   const handleRecordUpdated = useCallback(
     (updatedRecord: AdminRecord) => {
+      const nextRecord = normalizeAdminRecord(updatedRecord);
+
       setDashboard((current) =>
         current
           ? {
               ...current,
               records: current.records.map((record) =>
-                record.id === updatedRecord.id ? updatedRecord : record,
+                record.id === nextRecord.id ? nextRecord : record,
               ),
             }
           : current,
@@ -541,10 +629,10 @@ function AdminWorkspace({
   );
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf9_100%)] text-charcoal">
-      <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf9_100%)] text-charcoal max-[450px]:bg-[linear-gradient(180deg,#f4ede4_0%,#fbf7f2_28%,#f7f1e8_100%)]">
+      <div className="flex min-h-screen flex-col lg:flex-row max-[450px]:min-h-[100dvh]">
         <aside
-          className={`flex w-full flex-col border-b border-[rgba(200,182,153,0.28)] bg-[linear-gradient(180deg,rgba(33,27,24,0.98),rgba(58,44,34,0.96))] px-4 py-4 text-ivory transition-all duration-300 lg:min-h-screen lg:border-b-0 lg:border-r ${
+          className={`flex w-full flex-col border-b border-[rgba(200,182,153,0.28)] bg-[linear-gradient(180deg,rgba(33,27,24,0.98),rgba(58,44,34,0.96))] px-4 py-4 text-ivory transition-all duration-300 max-[450px]:hidden lg:min-h-screen lg:border-b-0 lg:border-r ${
             sidebarCompact ? "lg:w-[88px]" : "lg:w-[250px]"
           }`}
         >
@@ -577,34 +665,16 @@ function AdminWorkspace({
           </div>
 
           <nav className="mt-5 space-y-1.5">
-            <SidebarButton
-              active={activeView === "overview"}
-              compact={sidebarCompact}
-              icon={<LayoutDashboard className="h-4 w-4" />}
-              label="Overview"
-              onClick={() => onViewChange("overview")}
-            />
-            <SidebarButton
-              active={activeView === "guests"}
-              compact={sidebarCompact}
-              icon={<Users className="h-4 w-4" />}
-              label="Guest List"
-              onClick={() => onViewChange("guests")}
-            />
-            <SidebarButton
-              active={activeView === "scanner"}
-              compact={sidebarCompact}
-              icon={<ScanLine className="h-4 w-4" />}
-              label="Venue Scanner"
-              onClick={() => onViewChange("scanner")}
-            />
-            <SidebarButton
-              active={activeView === "photobooth"}
-              compact={sidebarCompact}
-              icon={<Images className="h-4 w-4" />}
-              label="Photobooth"
-              onClick={() => onViewChange("photobooth")}
-            />
+            {navItems.map((item) => (
+              <SidebarButton
+                key={item.view}
+                active={activeView === item.view}
+                compact={sidebarCompact}
+                icon={item.icon}
+                label={item.label}
+                onClick={() => onViewChange(item.view)}
+              />
+            ))}
           </nav>
 
           <div className="mt-5 rounded-[16px] border border-white/10 bg-white/6 p-3">
@@ -642,9 +712,63 @@ function AdminWorkspace({
           </div>
         </aside>
 
-        <main className="flex-1 px-3 py-4 sm:px-4 lg:px-5 lg:py-5">
-          <div className="mx-auto max-w-[1500px]">
-            <div className="flex flex-col gap-3 rounded-[18px] border border-[rgba(200,182,153,0.28)] bg-white/88 px-4 py-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] sm:flex-row sm:items-end sm:justify-between">
+        <main className="flex-1 px-3 py-4 sm:px-4 lg:px-5 lg:py-5 max-[450px]:px-0 max-[450px]:py-0">
+          <div className="mx-auto max-w-[1500px] max-[450px]:max-w-none max-[450px]:pb-[calc(96px+env(safe-area-inset-bottom))]">
+            <div className="hidden max-[450px]:block">
+              <div className="sticky top-0 z-30 border-b border-[rgba(200,182,153,0.18)] bg-[rgba(247,241,232,0.92)] px-4 pb-4 pt-[calc(14px+env(safe-area-inset-top))] backdrop-blur-xl">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[0.58rem] font-medium uppercase tracking-[0.32em] text-taupe">
+                      L &amp; A Admin
+                    </p>
+                    <h2 className="mt-2 font-serif text-[1.9rem] leading-none text-charcoal">
+                      {pageMeta.title}
+                    </h2>
+                    <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+                      {pageMeta.description}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleRefresh}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-white/84 text-charcoal shadow-[0_16px_32px_-22px_rgba(63,47,37,0.22)]"
+                      title="Refresh"
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-charcoal text-ivory shadow-[0_16px_32px_-22px_rgba(63,47,37,0.32)]"
+                      title="Logout"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleExport("excel")}
+                    className="inline-flex h-11 items-center justify-center rounded-[16px] border border-[rgba(200,182,153,0.28)] bg-white/86 px-4 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-charcoal shadow-[0_14px_26px_-20px_rgba(63,47,37,0.18)]"
+                  >
+                    {exporting === "excel" ? "Preparing..." : "Export Excel"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleExport("pdf")}
+                    className="inline-flex h-11 items-center justify-center rounded-[16px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ivory shadow-[0_14px_26px_-20px_rgba(63,47,37,0.24)]"
+                  >
+                    {exporting === "pdf" ? "Preparing..." : "Export PDF"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-[18px] border border-[rgba(200,182,153,0.28)] bg-white/88 px-4 py-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] sm:flex-row sm:items-end sm:justify-between max-[450px]:hidden">
               <div>
                 <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-taupe">
                   {pageMeta.badge}
@@ -668,71 +792,76 @@ function AdminWorkspace({
             </div>
 
             {error && (
-              <div className="mt-4 rounded-[14px] border border-destructive/25 bg-destructive/5 px-4 py-3 text-[12px] text-destructive">
+              <div className="mt-4 rounded-[14px] border border-destructive/25 bg-destructive/5 px-4 py-3 text-[12px] text-destructive max-[450px]:mx-4 max-[450px]:rounded-[18px] max-[450px]:bg-white/90">
                 {error}
               </div>
             )}
 
             {notice && (
-              <div className="mt-4 rounded-[14px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[12px] text-emerald-700">
+              <div className="mt-4 rounded-[14px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[12px] text-emerald-700 max-[450px]:mx-4 max-[450px]:rounded-[18px]">
                 {notice}
               </div>
             )}
 
-            <div className="mt-4">
-              {activeView === "overview" && (
-                <OverviewPage
-                  loading={loading}
-                  records={filteredRecords}
-                  summary={dashboard?.summary ?? null}
-                  onSelectGuest={setSelectedGuest}
-                />
-              )}
-
-              {activeView === "guests" && (
-                <GuestListPage
-                  loading={loading}
-                  records={filteredRecords}
-                  search={search}
-                  attendingFilter={attendingFilter}
-                  eventFilter={eventFilter}
-                  onSearchChange={setSearch}
-                  onAttendingFilterChange={setAttendingFilter}
-                  onEventFilterChange={setEventFilter}
-                  onSubmitFilters={handleFilterSubmit}
-                  onSelectGuest={setSelectedGuest}
-                  onGenerateGuestCode={handleGenerateGuestCode}
-                  generatingGuestId={generatingGuestId}
-                />
-              )}
-
-              {activeView === "scanner" && dashboard && (
-                <Suspense
-                  fallback={
-                    <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-8 text-center text-[12px] text-muted-foreground shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
-                      Loading venue scanner...
-                    </div>
-                  }
-                >
-                  <ScannerPage
-                    token={token}
-                    records={dashboard.records}
-                    onRecordUpdated={handleRecordUpdated}
+            <div className="mt-4 max-[450px]:mt-0 max-[450px]:px-4 max-[450px]:pb-4">
+              <AdminViewErrorBoundary
+                key={activeView}
+                title="This admin panel section could not be rendered"
+              >
+                {activeView === "overview" && (
+                  <OverviewPage
+                    loading={loading}
+                    records={filteredRecords}
+                    summary={dashboard?.summary ?? null}
+                    onSelectGuest={setSelectedGuest}
                   />
-                </Suspense>
-              )}
+                )}
 
-              {activeView === "photobooth" && (
-                <PhotoboothPage
-                  loading={photoboothLoading}
-                  records={photoboothRecords}
-                  search={photoboothSearch}
-                  eventFilter={photoboothEventFilter}
-                  onSearchChange={setPhotoboothSearch}
-                  onEventFilterChange={setPhotoboothEventFilter}
-                  onSubmitFilters={handleFilterSubmit}
-                />
-              )}
+                {activeView === "guests" && (
+                  <GuestListPage
+                    loading={loading}
+                    records={filteredRecords}
+                    search={search}
+                    attendingFilter={attendingFilter}
+                    eventFilter={eventFilter}
+                    onSearchChange={setSearch}
+                    onAttendingFilterChange={setAttendingFilter}
+                    onEventFilterChange={setEventFilter}
+                    onSubmitFilters={handleFilterSubmit}
+                    onSelectGuest={setSelectedGuest}
+                    onGenerateGuestCode={handleGenerateGuestCode}
+                    generatingGuestId={generatingGuestId}
+                  />
+                )}
+
+                {activeView === "scanner" && dashboard && (
+                  <Suspense
+                    fallback={
+                      <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-8 text-center text-[12px] text-muted-foreground shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+                        Loading venue scanner...
+                      </div>
+                    }
+                  >
+                    <ScannerPage
+                      token={token}
+                      records={dashboard.records}
+                      onRecordUpdated={handleRecordUpdated}
+                    />
+                  </Suspense>
+                )}
+
+                {activeView === "photobooth" && (
+                  <PhotoboothPage
+                    loading={photoboothLoading}
+                    records={photoboothRecords}
+                    search={photoboothSearch}
+                    eventFilter={photoboothEventFilter}
+                    onSearchChange={setPhotoboothSearch}
+                    onEventFilterChange={setPhotoboothEventFilter}
+                    onSubmitFilters={handleFilterSubmit}
+                  />
+                )}
+              </AdminViewErrorBoundary>
             </div>
           </div>
         </main>
@@ -741,6 +870,32 @@ function AdminWorkspace({
       {selectedGuest && (
         <GuestDetailModal record={selectedGuest} onClose={() => setSelectedGuest(null)} />
       )}
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 hidden border-t border-[rgba(200,182,153,0.18)] bg-[rgba(255,251,247,0.92)] px-3 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl max-[450px]:block">
+        <div className="grid grid-cols-4 gap-2 rounded-[22px] bg-white/72 p-2 shadow-[0_22px_40px_-30px_rgba(63,47,37,0.3)]">
+          {navItems.map((item) => {
+            const active = activeView === item.view;
+
+            return (
+              <button
+                key={item.view}
+                type="button"
+                onClick={() => onViewChange(item.view)}
+                className={`flex min-h-[60px] flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 text-center transition-colors ${
+                  active
+                    ? "bg-charcoal text-ivory shadow-[0_14px_28px_-18px_rgba(36,29,25,0.56)]"
+                    : "text-taupe"
+                }`}
+              >
+                {item.icon}
+                <span className="text-[0.58rem] font-medium uppercase tracking-[0.18em]">
+                  {item.shortLabel}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

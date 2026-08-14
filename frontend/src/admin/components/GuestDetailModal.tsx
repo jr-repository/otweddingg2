@@ -12,19 +12,25 @@ export function GuestDetailModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/52 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/52 px-4 py-6 max-[450px]:items-end max-[450px]:px-0 max-[450px]:py-0"
       onClick={onClose}
     >
       <div
-        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[22px] border border-[rgba(200,182,153,0.3)] bg-white p-5 shadow-2xl sm:p-6"
+        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[22px] border border-[rgba(200,182,153,0.3)] bg-white p-5 shadow-2xl sm:p-6 max-[450px]:max-h-[92dvh] max-[450px]:rounded-b-none max-[450px]:rounded-t-[28px] max-[450px]:border-x-0 max-[450px]:border-b-0 max-[450px]:px-4 max-[450px]:pb-[calc(18px+env(safe-area-inset-bottom))] max-[450px]:pt-3"
         onClick={(event) => event.stopPropagation()}
       >
+        <div className="mb-3 hidden justify-center max-[450px]:flex">
+          <span className="h-1.5 w-14 rounded-full bg-[rgba(200,182,153,0.58)]" />
+        </div>
+
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-taupe">
               Guest Detail
             </p>
-            <h3 className="mt-2 font-serif text-3xl leading-none text-charcoal">{record.fullName}</h3>
+            <h3 className="mt-2 font-serif text-3xl leading-none text-charcoal max-[450px]:text-[2rem]">
+              {record.fullName}
+            </h3>
             <p className="mt-2 text-[11px] uppercase tracking-[0.22em] text-taupe">
               Guest Code {record.guestCode}
             </p>
@@ -66,13 +72,21 @@ export function GuestDetailModal({
 
           <div className="space-y-3">
             <DetailRow icon={<Mail className="h-4 w-4" />} label="Email" value={record.email} />
-            <DetailRow icon={<Phone className="h-4 w-4" />} label="WhatsApp" value={record.phone || "-"} />
+            <DetailRow
+              icon={<Phone className="h-4 w-4" />}
+              label="WhatsApp"
+              value={record.phone || "-"}
+            />
             <DetailRow
               icon={<Ticket className="h-4 w-4" />}
               label="Attendance"
               value={`${record.attendingLabel} · ${record.guestsLabel}`}
             />
-            <DetailRow icon={<MapPin className="h-4 w-4" />} label="Events" value={record.eventsLabel} />
+            <DetailRow
+              icon={<MapPin className="h-4 w-4" />}
+              label="Events"
+              value={record.eventsLabel}
+            />
             <DetailRow
               icon={<CheckCircle2 className="h-4 w-4" />}
               label="Holy Matrimony Check-In"

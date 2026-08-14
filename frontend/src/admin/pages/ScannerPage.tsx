@@ -3,7 +3,12 @@ import { Camera, CheckCircle2, RefreshCcw, Search, ShieldCheck, XCircle } from "
 
 import { EventToggle } from "@/admin/components/AdminUi";
 import type { AdminRecord, EventKey, ScanFeedback } from "@/admin/types";
-import { buildCheckInFeedback, getEventLabel, recordBelongsToEvent } from "@/admin/utils";
+import {
+  buildCheckInFeedback,
+  getEventLabel,
+  normalizeAdminRecords,
+  recordBelongsToEvent,
+} from "@/admin/utils";
 import { API_BASE_URL } from "@/lib/config";
 import type { PhotoboothSavedCapture, PhotoboothSessionGuest } from "@/photobooth/types";
 import checkInErrorSoundSrc from "../../../../sound-checkin/error.mp3";
@@ -57,14 +62,16 @@ export function ScannerPage({
     eventLabel: string;
   } | null>(null);
   const scannerRef = useRef<ScannerInstance | null>(null);
+  const scannerMountIdRef = useRef(0);
   const successAudioRef = useRef<HTMLAudioElement | null>(null);
   const errorAudioRef = useRef<HTMLAudioElement | null>(null);
   const busyRef = useRef(false);
   const trimmedSearch = search.trim();
   const selectedEventLabel = getEventLabel(selectedEvent);
+  const safeRecords = useMemo(() => normalizeAdminRecords(records), [records]);
   const eventRecords = useMemo(
-    () => records.filter((record) => recordBelongsToEvent(record, selectedEvent)),
-    [records, selectedEvent],
+    () => safeRecords.filter((record) => recordBelongsToEvent(record, selectedEvent)),
+    [safeRecords, selectedEvent],
   );
   const searchResults = useMemo(() => {
     const needle = trimmedSearch.toLowerCase();
@@ -108,6 +115,11 @@ export function ScannerPage({
   };
 
   const resumeScanner = (delay = 0) => {
+    if (typeof window === "undefined") {
+      busyRef.current = false;
+      return;
+    }
+
     window.setTimeout(() => {
       busyRef.current = false;
       void scannerRef.current?.resume().catch(() => undefined);
@@ -120,11 +132,21 @@ export function ScannerPage({
 
   const wait = (delay: number) =>
     new Promise<void>((resolve) => {
+      if (typeof window === "undefined") {
+        resolve();
+        return;
+      }
+
       window.setTimeout(resolve, delay);
     });
 
   const waitForPaint = () =>
     new Promise<void>((resolve) => {
+      if (typeof window === "undefined") {
+        resolve();
+        return;
+      }
+
       window.requestAnimationFrame(() => resolve());
     });
 
@@ -244,15 +266,27 @@ export function ScannerPage({
   );
 
   useEffect(() => {
+    let cancelled = false;
+    const mountId = scannerMountIdRef.current + 1;
+    scannerMountIdRef.current = mountId;
+
     const startScanner = async () => {
+      if (typeof window === "undefined" || typeof document === "undefined") {
+        return;
+      }
+
       const target = document.getElementById("wedding-checkin-scanner");
       if (!target || scannerRef.current) return;
 
-      const module = await import("html5-qrcode");
-      const scanner = new module.Html5Qrcode("wedding-checkin-scanner");
-      scannerRef.current = scanner;
-
       try {
+        const module = await import("html5-qrcode");
+        if (cancelled || scannerMountIdRef.current !== mountId) {
+          return;
+        }
+
+        const scanner = new module.Html5Qrcode("wedding-checkin-scanner");
+        scannerRef.current = scanner;
+
         await scanner.start(
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 320, height: 320 }, disableFlip: true },
@@ -275,13 +309,19 @@ export function ScannerPage({
         );
 
         window.setTimeout(() => {
-          const video = target.querySelector("video");
+          const currentTarget = document.getElementById("wedding-checkin-scanner");
+          const video = currentTarget?.querySelector("video");
           if (video instanceof HTMLVideoElement) {
             video.style.transform = "scaleX(-1)";
             video.style.webkitTransform = "scaleX(-1)";
           }
         }, 120);
       } catch (caughtError) {
+        if (cancelled) {
+          return;
+        }
+
+        scannerRef.current = null;
         setFeedback({
           kind: "error",
           title: "Camera unavailable",
@@ -296,6 +336,7 @@ export function ScannerPage({
     void startScanner();
 
     return () => {
+      cancelled = true;
       const scanner = scannerRef.current;
       scannerRef.current = null;
       if (scanner) {
@@ -317,6 +358,10 @@ export function ScannerPage({
   ]);
 
   useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
     const onFullscreenChange = () => {
       setIsFullscreen(Boolean(document.fullscreenElement));
     };
@@ -326,6 +371,10 @@ export function ScannerPage({
   }, []);
 
   const openFullscreen = async () => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
     const target = document.getElementById("scanner-fullscreen-shell");
     if (!target?.requestFullscreen) return;
     await target.requestFullscreen().catch(() => undefined);
@@ -355,7 +404,7 @@ export function ScannerPage({
   return (
     <section
       id="scanner-fullscreen-shell"
-      className="rounded-[20px] border border-[rgba(200,182,153,0.3)] bg-[linear-gradient(180deg,#171311_0%,#251d18_100%)] p-3 text-ivory shadow-[0_20px_50px_-36px_rgba(63,47,37,0.2)] sm:p-4"
+      className="rounded-[20px] border border-[rgba(200,182,153,0.3)] bg-[linear-gradient(180deg,#171311_0%,#251d18_100%)] p-3 text-ivory shadow-[0_20px_50px_-36px_rgba(63,47,37,0.2)] sm:p-4 max-[450px]:rounded-[26px] max-[450px]:border-[rgba(200,182,153,0.18)] max-[450px]:p-3.5"
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
@@ -369,7 +418,7 @@ export function ScannerPage({
         <button
           type="button"
           onClick={() => void openFullscreen()}
-          className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-white/10"
+          className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-white/10 max-[450px]:h-11 max-[450px]:w-full max-[450px]:justify-center max-[450px]:rounded-[16px]"
         >
           <Camera className="h-3.5 w-3.5" />
           {isFullscreen ? "Scanner Open" : "Open Full Screen"}
@@ -377,7 +426,7 @@ export function ScannerPage({
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[3fr_1fr]">
-        <div className="rounded-[18px] border border-white/10 bg-white/5 p-3">
+        <div className="rounded-[18px] border border-white/10 bg-white/5 p-3 max-[450px]:rounded-[22px] max-[450px]:bg-white/6">
           <div className="flex flex-wrap gap-2.5">
             <EventToggle
               active={selectedEvent === "holy_matrimony"}
@@ -395,7 +444,7 @@ export function ScannerPage({
             <div className="relative">
               <div
                 id="wedding-checkin-scanner"
-                className="aspect-[4/3] min-h-[360px] w-full overflow-hidden [&_video]:h-full [&_video]:w-full [&_video]:object-cover xl:min-h-[600px]"
+                className="aspect-[4/3] min-h-[360px] w-full overflow-hidden [&_video]:h-full [&_video]:w-full [&_video]:object-cover xl:min-h-[600px] max-[450px]:min-h-[280px]"
               />
               <div className="pointer-events-none absolute inset-x-4 bottom-4 flex justify-center">
                 <div className="rounded-full border border-white/10 bg-[rgba(14,10,8,0.64)] px-4 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-ivory/82 shadow-lg backdrop-blur-sm">
@@ -416,7 +465,7 @@ export function ScannerPage({
           </div>
         </div>
 
-        <div className="rounded-[18px] border border-white/10 bg-white/6 p-4">
+        <div className="rounded-[18px] border border-white/10 bg-white/6 p-4 max-[450px]:rounded-[22px] max-[450px]:bg-white/6">
           <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-ivory/62">
             Forgot QR?
           </p>
@@ -434,7 +483,7 @@ export function ScannerPage({
             />
           </div>
 
-          <div className="mt-4 space-y-2.5">
+          <div className="mt-4 space-y-2.5 max-[450px]:max-h-[40dvh] max-[450px]:overflow-y-auto max-[450px]:pr-1">
             {!trimmedSearch && (
               <div className="rounded-[14px] border border-dashed border-white/10 bg-black/10 px-3 py-4 text-[12px] leading-relaxed text-ivory/58">
                 No guest list is shown by default. Type a guest name, WhatsApp number, email, or
@@ -452,7 +501,7 @@ export function ScannerPage({
               searchResults.map((record) => (
                 <div
                   key={record.id}
-                  className="rounded-[14px] border border-white/10 bg-black/10 px-3 py-3"
+                  className="rounded-[14px] border border-white/10 bg-black/10 px-3 py-3 max-[450px]:rounded-[18px]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -485,7 +534,7 @@ export function ScannerPage({
       {feedback && (
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-charcoal/28 px-4">
           <div
-            className={`w-full max-w-sm rounded-[18px] border px-5 py-5 text-center shadow-2xl ${
+            className={`w-full max-w-sm rounded-[18px] border px-5 py-5 text-center shadow-2xl max-[450px]:rounded-[24px] max-[450px]:px-4 ${
               feedback.kind === "success"
                 ? "border-emerald-200 bg-white text-charcoal"
                 : feedback.kind === "loading"

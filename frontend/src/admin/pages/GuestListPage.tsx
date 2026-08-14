@@ -49,17 +49,23 @@ export function GuestListPage({
   const rowEnd = records.length === 0 ? 0 : Math.min(safePage * PAGE_SIZE, records.length);
 
   return (
-    <section className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+    <section className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] max-[450px]:rounded-[26px] max-[450px]:border-[rgba(200,182,153,0.2)] max-[450px]:bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,245,239,0.94))] max-[450px]:p-3.5 max-[450px]:shadow-[0_24px_48px_-34px_rgba(63,47,37,0.22)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-taupe">
             Guest Records
           </p>
           <h3 className="mt-2 font-serif text-2xl text-charcoal">RSVP Guest List</h3>
+          <p className="mt-2 hidden text-[12px] text-muted-foreground max-[450px]:block">
+            Cari tamu, cek status, lalu buka detail atau generate guest code langsung dari sini.
+          </p>
         </div>
 
-        <form onSubmit={onSubmitFilters} className="grid gap-2 sm:grid-cols-3 lg:w-[640px]">
-          <label className="sm:col-span-3">
+        <form
+          onSubmit={onSubmitFilters}
+          className="grid gap-2 sm:grid-cols-3 lg:w-[640px] max-[450px]:rounded-[22px] max-[450px]:border max-[450px]:border-[rgba(200,182,153,0.2)] max-[450px]:bg-[#fcfaf7] max-[450px]:p-3"
+        >
+          <label className="sm:col-span-3 max-[450px]:sm:col-span-1">
             <span className="mb-1.5 block text-[0.58rem] font-medium uppercase tracking-[0.22em] text-taupe">
               Search
             </span>
@@ -96,14 +102,14 @@ export function GuestListPage({
           />
           <button
             type="submit"
-            className="mt-[1.45rem] inline-flex h-10 items-center justify-center rounded-[12px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-charcoal/92"
+            className="mt-[1.45rem] inline-flex h-10 items-center justify-center rounded-[12px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-charcoal/92 max-[450px]:mt-0 max-[450px]:h-11 max-[450px]:rounded-[16px]"
           >
             Apply Filters
           </button>
         </form>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-[16px] border border-[rgba(200,182,153,0.22)]">
+      <div className="mt-4 overflow-hidden rounded-[16px] border border-[rgba(200,182,153,0.22)] max-[450px]:hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse">
             <thead>
@@ -209,6 +215,127 @@ export function GuestListPage({
             total={records.length}
             onPageChange={setPage}
           />
+        )}
+      </div>
+
+      <div className="hidden max-[450px]:mt-4 max-[450px]:block">
+        <div className="mb-3 flex items-center justify-between rounded-[18px] border border-[rgba(200,182,153,0.18)] bg-[#fcfaf7] px-3.5 py-3 text-[12px] text-muted-foreground">
+          <span>
+            Showing {rowStart}-{rowEnd}
+          </span>
+          <span>{records.length} guests</span>
+        </div>
+
+        <div className="space-y-3">
+          {loading && (
+            <div className="rounded-[20px] border border-[rgba(200,182,153,0.18)] bg-[#fcfaf7] px-4 py-8 text-center text-[12px] text-muted-foreground">
+              Loading guest list...
+            </div>
+          )}
+
+          {!loading && paginatedRecords.length === 0 && (
+            <div className="rounded-[20px] border border-[rgba(200,182,153,0.18)] bg-[#fcfaf7] px-4 py-8 text-center text-[12px] text-muted-foreground">
+              No guests found for this view.
+            </div>
+          )}
+
+          {!loading &&
+            paginatedRecords.map((record, index) => (
+              <article
+                key={record.id}
+                className="rounded-[22px] border border-[rgba(200,182,153,0.2)] bg-[#fcfaf7] p-4 shadow-[0_18px_36px_-28px_rgba(63,47,37,0.18)]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <button type="button" onClick={() => onSelectGuest(record)} className="text-left">
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-taupe">
+                      Guest {rowStart + index}
+                    </p>
+                    <h4 className="mt-2 text-[16px] font-medium leading-snug text-charcoal">
+                      {record.fullName}
+                    </h4>
+                    <p className="mt-1 text-[12px] text-muted-foreground">
+                      Submitted {record.submittedAtLabel}
+                    </p>
+                  </button>
+
+                  <span className="rounded-full bg-cream px-3 py-1 text-[0.58rem] uppercase tracking-[0.2em] text-charcoal">
+                    {record.attendingLabel}
+                  </span>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 text-[12px] text-muted-foreground">
+                  <div>
+                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">
+                      Guest Code
+                    </p>
+                    <p className="mt-1 break-all text-charcoal">
+                      {record.guestCode || "Not generated yet"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">Seats</p>
+                    <p className="mt-1 text-charcoal">{record.guestsLabel}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">Contact</p>
+                    <p className="mt-1 break-all text-charcoal">{record.email || "-"}</p>
+                    <p className="mt-1 text-charcoal">{record.phone || "-"}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">Events</p>
+                    <p className="mt-1 text-charcoal">{record.eventsLabel}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">
+                      Check-In
+                    </p>
+                    <p className="mt-1 text-charcoal">M: {record.holyMatrimonyCheckedInLabel}</p>
+                    <p className="mt-1 text-charcoal">L: {record.syukuranCheckedInLabel}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onSelectGuest(record)}
+                    className="inline-flex h-11 items-center justify-center rounded-[16px] border border-[rgba(200,182,153,0.24)] bg-white px-4 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-charcoal"
+                  >
+                    View Detail
+                  </button>
+
+                  {record.guestCode ? (
+                    <div className="inline-flex h-11 items-center justify-center rounded-[16px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ivory">
+                      Code Ready
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onGenerateGuestCode(record)}
+                      disabled={generatingGuestId === record.id}
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-[16px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.18em] text-ivory disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      {generatingGuestId === record.id ? (
+                        <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                      ) : null}
+                      {generatingGuestId === record.id ? "Generating..." : "Generate Code"}
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+        </div>
+
+        {!loading && records.length > 0 && (
+          <div className="mt-3 overflow-hidden rounded-[18px] border border-[rgba(200,182,153,0.18)] bg-[#fcfaf7]">
+            <PaginationControls
+              page={safePage}
+              totalPages={totalPages}
+              start={rowStart}
+              end={rowEnd}
+              total={records.length}
+              onPageChange={setPage}
+            />
+          </div>
         )}
       </div>
     </section>

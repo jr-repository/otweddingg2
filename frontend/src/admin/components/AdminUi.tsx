@@ -7,9 +7,11 @@ export function adminInputCls() {
 
 export function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <article className="rounded-[16px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-3 shadow-[0_16px_36px_-28px_rgba(63,47,37,0.16)]">
+    <article className="rounded-[16px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-3 shadow-[0_16px_36px_-28px_rgba(63,47,37,0.16)] max-[450px]:rounded-[22px] max-[450px]:border-[rgba(200,182,153,0.22)] max-[450px]:bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(249,243,236,0.96))] max-[450px]:p-4 max-[450px]:shadow-[0_22px_44px_-34px_rgba(63,47,37,0.22)]">
       <p className="text-[0.58rem] font-medium uppercase tracking-[0.26em] text-taupe">{label}</p>
-      <p className="mt-3 font-serif text-3xl leading-none text-charcoal">{value}</p>
+      <p className="mt-3 font-serif text-3xl leading-none text-charcoal max-[450px]:text-[2.2rem]">
+        {value}
+      </p>
     </article>
   );
 }
@@ -168,27 +170,27 @@ export function PaginationControls({
   onPageChange: (page: number) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 border-t border-[rgba(200,182,153,0.18)] px-4 py-3 text-[12px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 border-t border-[rgba(200,182,153,0.18)] px-4 py-3 text-[12px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between max-[450px]:gap-3 max-[450px]:px-3.5 max-[450px]:py-4">
       <p>
         Showing {start}-{end} of {total}
       </p>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 max-[450px]:justify-between">
         <button
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-white text-charcoal transition-colors hover:bg-cream disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-white text-charcoal transition-colors hover:bg-cream disabled:cursor-not-allowed disabled:opacity-45 max-[450px]:h-10 max-[450px]:w-10"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="min-w-[88px] text-center text-[11px] uppercase tracking-[0.2em] text-taupe">
+        <span className="min-w-[88px] text-center text-[11px] uppercase tracking-[0.2em] text-taupe max-[450px]:min-w-[110px]">
           Page {page} / {totalPages}
         </span>
         <button
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-white text-charcoal transition-colors hover:bg-cream disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-white text-charcoal transition-colors hover:bg-cream disabled:cursor-not-allowed disabled:opacity-45 max-[450px]:h-10 max-[450px]:w-10"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
