@@ -38,6 +38,7 @@ import type {
 } from "@/admin/types";
 import { EMPTY_SUMMARY, normalizeAdminRecord, normalizeAdminRecords } from "@/admin/utils";
 import { ADMIN_TOKEN_STORAGE_KEY, API_BASE_URL } from "@/lib/config";
+import "@/admin/admin-mobile.css";
 
 const ScannerPage = lazy(async () =>
   import("@/admin/pages/ScannerPage").then((module) => ({ default: module.ScannerPage })),
@@ -180,7 +181,7 @@ export function AdminApp() {
 
   if (loadingSession) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf8_100%)]">
+      <div className="wa-admin-mobile-shell flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf8_100%)]">
         <div className="rounded-[18px] border border-[rgba(200,182,153,0.3)] bg-white px-6 py-4 text-[12px] text-muted-foreground shadow-[0_20px_50px_-36px_rgba(63,47,37,0.2)]">
           Loading admin panel…
         </div>
@@ -239,7 +240,62 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (token: string, user: AdminUse
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f6efe6_0%,#fdfbf9_100%)] px-4 py-6 text-charcoal sm:px-6">
+    <div className="wa-admin-mobile-shell min-h-screen bg-[linear-gradient(180deg,#f6efe6_0%,#fdfbf9_100%)] px-4 py-6 text-charcoal sm:px-6 max-[450px]:bg-transparent max-[450px]:px-0 max-[450px]:py-0">
+      <div className="wa-admin-mobile-login hidden max-[450px]:flex">
+        <div className="wa-admin-mobile-visual">
+          <div className="wa-admin-mobile-abstract text-[20px] font-semibold">L</div>
+          <div className="wa-admin-mobile-title mt-4 text-[24px] leading-none">L &amp; A Admin</div>
+          <div className="wa-admin-mobile-badge">Wedding Admin</div>
+        </div>
+
+        <form onSubmit={submit} className="wa-admin-mobile-card p-6">
+          <div className="text-center">
+            <span className="wa-admin-mobile-abstract mx-auto text-[18px]">A</span>
+            <h1 className="wa-admin-mobile-title mt-4 text-[22px]">Masuk ke Admin</h1>
+            <p className="mt-1 text-[10px] text-taupe">
+              Kelola RSVP, scanner venue, guest code, dan photobooth dari satu portal.
+            </p>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <label className="block">
+              <span className="text-[10px] font-bold text-charcoal">Username</span>
+              <input
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                className="wa-admin-mobile-input mt-2"
+                placeholder="Masukkan username"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-[10px] font-bold text-charcoal">Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="wa-admin-mobile-input mt-2"
+                placeholder="Masukkan password"
+              />
+            </label>
+
+            {error && (
+              <div className="rounded-[18px] border border-destructive/20 bg-white/80 px-4 py-3 text-[10px] text-destructive">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="wa-admin-mobile-primary-btn inline-flex h-12 w-full items-center justify-center rounded-[20px] text-[12px] font-extrabold disabled:opacity-70"
+            >
+              {submitting ? "Signing In..." : "Enter Dashboard"}
+            </button>
+          </div>
+        </form>
+      </div>
+
       <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-5xl overflow-hidden rounded-[24px] border border-[rgba(200,182,153,0.34)] bg-white shadow-[0_28px_80px_-44px_rgba(63,47,37,0.24)] lg:grid-cols-[1fr_0.92fr]">
         <div className="relative hidden overflow-hidden bg-[linear-gradient(135deg,rgba(33,27,24,0.96),rgba(96,70,48,0.82))] p-8 text-ivory lg:block">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(214,190,152,0.32),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_24%)]" />
@@ -272,7 +328,7 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (token: string, user: AdminUse
           </div>
         </div>
 
-        <div className="flex items-center px-5 py-8 sm:px-8">
+        <div className="flex items-center px-5 py-8 sm:px-8 max-[450px]:hidden">
           <div className="mx-auto w-full max-w-md">
             <p className="text-[0.62rem] font-medium uppercase tracking-[0.34em] text-taupe">
               Admin Login
@@ -707,7 +763,7 @@ function AdminWorkspace({
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf9_100%)] text-charcoal max-[450px]:bg-[linear-gradient(180deg,#f4ede4_0%,#fbf7f2_28%,#f7f1e8_100%)]">
+    <div className="wa-admin-mobile-shell min-h-screen bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf9_100%)] text-charcoal max-[450px]:bg-transparent">
       <div className="flex min-h-screen flex-col lg:flex-row max-[450px]:min-h-[100dvh]">
         <aside
           className={`flex w-full flex-col border-b border-[rgba(200,182,153,0.28)] bg-[linear-gradient(180deg,rgba(33,27,24,0.98),rgba(58,44,34,0.96))] px-4 py-4 text-ivory transition-all duration-300 max-[450px]:hidden lg:min-h-screen lg:border-b-0 lg:border-r ${
@@ -793,50 +849,45 @@ function AdminWorkspace({
         <main className="flex-1 px-3 py-4 sm:px-4 lg:px-5 lg:py-5 max-[450px]:px-0 max-[450px]:py-0">
           <div className="mx-auto max-w-[1500px] max-[450px]:max-w-none max-[450px]:pb-[calc(96px+env(safe-area-inset-bottom))]">
             <div className="hidden max-[450px]:block">
-              <div className="sticky top-0 z-30 border-b border-[rgba(232,222,211,0.85)] bg-[rgba(253,250,246,0.94)] px-[15px] pb-2 pt-[calc(8px+env(safe-area-inset-top))] backdrop-blur-xl">
+              <div className="wa-admin-mobile-topbar">
                 {activeView === "overview" ? (
-                  <div className="flex h-[52px] items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="flex h-[52px] w-full items-center justify-between">
+                    <div className="wa-admin-mobile-brand">
                       <button
                         type="button"
                         onClick={() => setMobileDrawerOpen(true)}
-                        className="grid h-8 w-8 place-items-center rounded-[10px] text-charcoal"
+                        className="wa-admin-mobile-action"
                         title="Open menu"
                       >
                         <Menu className="h-[18px] w-[18px]" />
                       </button>
-                      <div>
-                        <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-charcoal">
-                          L &amp; A Admin
-                        </p>
-                        <p className="mt-[3px] text-[8px] text-[#9a8f86]">Wedding Operations</p>
+                      <div className="wa-admin-mobile-brand-copy">
+                        <p className="eyebrow">L &amp; A Admin</p>
+                        <p className="sub">Wedding Operations</p>
                       </div>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleRefresh}
-                      className="relative grid h-8 w-8 place-items-center rounded-[10px] text-charcoal"
+                      className="wa-admin-mobile-action"
                       title="Refresh dashboard"
                     >
-                      <Bell className="h-[18px] w-[18px]" />
-                      <span className="absolute right-[3px] top-[3px] h-1.5 w-1.5 rounded-full border border-white bg-[#de6c4f]" />
+                      <RefreshCcw className="h-[18px] w-[18px]" />
                     </button>
                   </div>
                 ) : (
-                  <div className="grid h-[52px] grid-cols-[32px_minmax(0,1fr)_32px] items-center">
+                  <div className="grid h-[52px] w-full grid-cols-[32px_minmax(0,1fr)_32px] items-center">
                     <button
                       type="button"
                       onClick={() => setMobileDrawerOpen(true)}
-                      className="grid h-8 w-8 place-items-center rounded-[10px] text-charcoal"
+                      className="wa-admin-mobile-action"
                       title="Open menu"
                     >
                       <Menu className="h-[18px] w-[18px]" />
                     </button>
 
-                    <h2 className="text-center font-serif text-[16px] leading-none text-charcoal">
-                      {mobilePageTitle}
-                    </h2>
+                    <h2 className="wa-admin-mobile-topbar-title text-center">{mobilePageTitle}</h2>
 
                     {activeView === "more" ? (
                       <span className="block h-8 w-8" />
@@ -844,7 +895,7 @@ function AdminWorkspace({
                       <button
                         type="button"
                         onClick={handleMobileHeaderAction}
-                        className="grid h-8 w-8 place-items-center rounded-[10px] text-charcoal"
+                        className="wa-admin-mobile-action"
                         title={
                           activeView === "guests"
                             ? "Focus search"
@@ -858,7 +909,7 @@ function AdminWorkspace({
                         ) : activeView === "scanner" ? (
                           <CircleHelp className="h-[18px] w-[18px]" />
                         ) : (
-                          <Bell className="h-[18px] w-[18px]" />
+                          <RefreshCcw className="h-[18px] w-[18px]" />
                         )}
                       </button>
                     )}
@@ -902,7 +953,7 @@ function AdminWorkspace({
               </div>
             )}
 
-            <div className="mt-4 max-[450px]:mt-0 max-[450px]:px-4 max-[450px]:pb-4">
+            <div className="mt-4 max-[450px]:mt-3 max-[450px]:px-4 max-[450px]:pb-4">
               <AdminViewErrorBoundary
                 key={activeView}
                 title="This admin panel section could not be rendered"
@@ -915,6 +966,8 @@ function AdminWorkspace({
                     onSelectGuest={setSelectedGuest}
                     onOpenGuests={() => onViewChange("guests")}
                     onOpenScanner={() => onViewChange("scanner")}
+                    onExport={(kind) => void handleExport(kind)}
+                    exporting={exporting}
                   />
                 )}
 
@@ -982,13 +1035,15 @@ function AdminWorkspace({
       )}
 
       <div
-        className={`fixed inset-0 z-[80] hidden bg-[rgba(20,16,14,0.3)] transition-opacity duration-200 max-[450px]:block ${
-          mobileDrawerOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        className={`wa-admin-mobile-drawer-backdrop hidden max-[450px]:block ${
+          mobileDrawerOpen
+            ? "open pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
         }`}
         onClick={() => setMobileDrawerOpen(false)}
       >
         <aside
-          className={`absolute bottom-0 left-0 top-0 w-[78%] max-w-[300px] bg-[#2d231e] px-3.5 pb-4 pt-[calc(18px+env(safe-area-inset-top))] text-white transition-transform duration-200 ${
+          className={`wa-admin-mobile-drawer ${
             mobileDrawerOpen ? "translate-x-0" : "-translate-x-[102%]"
           }`}
           onClick={(event) => event.stopPropagation()}
@@ -1000,7 +1055,7 @@ function AdminWorkspace({
             <p className="mt-[3px] text-[8px] text-[#baaea6]">Wedding Operations</p>
           </div>
 
-          <h2 className="mt-3 font-serif text-[18px] leading-none">Dashboard</h2>
+          <h2 className="wa-admin-mobile-drawer-title">Dashboard</h2>
           <p className="mt-1 text-[7.5px] text-[#baaea6]">Signed in as {user.username}</p>
 
           <div className="mt-4 space-y-1.5">
@@ -1022,8 +1077,8 @@ function AdminWorkspace({
         </aside>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 hidden border-t border-[rgba(238,229,219,1)] bg-[rgba(255,253,249,0.96)] px-1 pb-[max(6px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl max-[450px]:block">
-        <div className="grid grid-cols-5">
+      <nav className="wa-admin-mobile-bottom-nav hidden max-[450px]:grid">
+        <div className="contents">
           {navItems.map((item) => {
             const active = activeView === item.view;
 
@@ -1032,9 +1087,7 @@ function AdminWorkspace({
                 key={item.view}
                 type="button"
                 onClick={() => onViewChange(item.view)}
-                className={`flex min-h-[52px] flex-col items-center justify-center gap-0.5 px-1 py-1 text-center transition-colors ${
-                  active ? "font-semibold text-[#2e241e]" : "text-[#887c73]"
-                }`}
+                className={`wa-admin-mobile-nav-item ${active ? "active" : ""}`}
               >
                 {item.icon}
                 <span className="text-[6.6px]">

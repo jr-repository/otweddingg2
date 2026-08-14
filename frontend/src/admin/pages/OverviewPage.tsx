@@ -7,6 +7,15 @@ import heroPhoto from "@/assets/photos/gallery-photo-06.jpeg";
 
 const PAGE_SIZE = 6;
 
+function guestInitials(fullName: string) {
+  return fullName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 export function OverviewPage({
   loading,
   records,
@@ -14,6 +23,8 @@ export function OverviewPage({
   onSelectGuest,
   onOpenGuests,
   onOpenScanner,
+  onExport,
+  exporting,
 }: {
   loading: boolean;
   records: AdminRecord[];
@@ -21,6 +32,8 @@ export function OverviewPage({
   onSelectGuest: (record: AdminRecord) => void;
   onOpenGuests: () => void;
   onOpenScanner: () => void;
+  onExport: (kind: "excel" | "pdf") => void;
+  exporting: "" | "excel" | "pdf";
 }) {
   const [page, setPage] = useState(1);
 
@@ -34,122 +47,172 @@ export function OverviewPage({
     const startIndex = (safePage - 1) * PAGE_SIZE;
     return records.slice(startIndex, startIndex + PAGE_SIZE);
   }, [records, safePage]);
-  const latestActivity = records.slice(0, 3);
+  const latestActivity = records.slice(0, 4);
   const rowStart = records.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
   const rowEnd = records.length === 0 ? 0 : Math.min(safePage * PAGE_SIZE, records.length);
 
   return (
     <div className="space-y-4">
       <section className="hidden max-[450px]:block">
-        <div className="grid grid-cols-[minmax(0,1fr)_116px] items-end gap-[10px]">
-          <div className="py-[7px]">
-            <p className="font-serif text-[15px] leading-[1.1] text-charcoal">Welcome back,</p>
-            <h1 className="mt-0.5 font-serif text-[24px] leading-none tracking-[-0.025em] text-charcoal">
-              Admin
-            </h1>
-            <p className="mt-2 max-w-[150px] text-[8px] leading-[1.55] text-taupe">
-              here&apos;s what happening with today&apos;s operations.
-            </p>
-          </div>
+        <div className="wa-admin-mobile-card px-4 py-4">
+          <div className="flex items-start gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#85786f]">
+                Wedding operations
+              </p>
+              <h1 className="wa-admin-mobile-title mt-2 text-[26px] leading-[0.96]">
+                Invitation
+                <br />
+                control center
+              </h1>
+              <p className="mt-3 max-w-[170px] text-[10px] leading-[1.55] text-[#8f8379]">
+                Pantau RSVP, buka scanner venue, dan cek aktivitas tamu dari satu tampilan mobile.
+              </p>
 
-          <div className="relative h-[132px]">
-            <img
-              src={heroPhoto}
-              alt="Wedding reception"
-              className="h-[132px] w-[116px] rounded-[58px_15px_15px_15px] object-cover shadow-[0_10px_28px_rgba(73,49,34,0.12)]"
-            />
-            <div className="absolute bottom-3 left-[-8px] grid h-[38px] w-[38px] place-items-center rounded-full border border-[rgba(238,229,219,1)] bg-white shadow-[0_7px_18px_rgba(40,30,24,0.12)]">
-              <CalendarDays className="h-[15px] w-[15px] text-charcoal" />
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onExport("excel")}
+                  className="wa-admin-mobile-pill-btn w-full"
+                >
+                  {exporting === "excel" ? "Preparing Excel" : "Export Excel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onExport("pdf")}
+                  className="wa-admin-mobile-pill-btn w-full"
+                >
+                  {exporting === "pdf" ? "Preparing PDF" : "Export PDF"}
+                </button>
+              </div>
+            </div>
+
+            <div className="relative shrink-0">
+              <img
+                src={heroPhoto}
+                alt="Wedding reception"
+                className="h-[148px] w-[110px] rounded-[42px_18px_18px_18px] object-cover shadow-[0_18px_36px_rgba(63,47,37,0.14)]"
+              />
+              <div className="absolute bottom-3 left-[-10px] grid h-10 w-10 place-items-center rounded-[16px] border border-white/80 bg-white/92 shadow-[0_12px_24px_rgba(63,47,37,0.12)]">
+                <CalendarDays className="h-4 w-4 text-charcoal" />
+              </div>
             </div>
           </div>
         </div>
 
         {summary && (
-          <>
-            <p className="mb-1.5 mt-3 text-[7px] font-bold uppercase tracking-[0.23em] text-[#9b8e84]">
-              Today Overview
-            </p>
-            <div className="grid grid-cols-2 gap-[5px]">
-              <MetricCard label="Total Responses" value={summary.totalResponses} />
-              <MetricCard label="Attending" value={summary.attendingYes} />
-              <MetricCard label="Confirmed Seats" value={summary.confirmedSeats} />
-              <MetricCard label="Pending Check-In" value={summary.pendingCheckIns} />
-              <MetricCard label="Checked-In Guests" value={summary.checkedInGuests} />
-              <MetricCard label="Unable to Attend" value={summary.attendingNo} />
+          <div className="wa-admin-mobile-section">
+            <div className="wa-admin-mobile-section-head">
+              <h2>Today Overview</h2>
+              <button type="button">Live summary</button>
             </div>
-          </>
+
+            <div className="wa-admin-mobile-summary-scroll">
+              {[
+                ["Total Responses", summary.totalResponses],
+                ["Attending", summary.attendingYes],
+                ["Confirmed Seats", summary.confirmedSeats],
+                ["Pending Check-In", summary.pendingCheckIns],
+                ["Checked-In Guests", summary.checkedInGuests],
+                ["Unable to Attend", summary.attendingNo],
+              ].map(([label, value]) => (
+                <article key={String(label)} className="wa-admin-mobile-card w-full px-4 py-4">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.24em] text-[#8f8379]">
+                    {label}
+                  </p>
+                  <p className="mt-4 font-serif text-[36px] leading-none text-charcoal">{value}</p>
+                </article>
+              ))}
+            </div>
+          </div>
         )}
 
-        <div className="mt-[7px] rounded-[15px] bg-[linear-gradient(145deg,#2a201b,#3a2d25)] px-3 py-3 text-white shadow-[0_12px_28px_rgba(45,33,27,0.17)]">
-          <h2 className="font-serif text-[14px] leading-[1.18]">
-            Scanner is ready for guest arrival
-          </h2>
-          <p className="mt-[7px] text-[7.5px] leading-[1.45] text-[#d5cbc4]">
-            Each guest QR can be used once per event.
-          </p>
-          <button
-            type="button"
-            onClick={onOpenScanner}
-            className="mt-[10px] inline-flex items-center gap-2 rounded-[8px] bg-white px-3 py-[9px] text-[7.5px] font-bold uppercase tracking-[0.18em] text-[#2c231e]"
-          >
-            <ScanLine className="h-[13px] w-[13px]" />
-            Open Scanner
-          </button>
+        <div className="wa-admin-mobile-section">
+          <div className="wa-admin-mobile-card is-dark overflow-hidden px-4 py-4 text-white">
+            <p className="text-[8px] font-bold uppercase tracking-[0.26em] text-white/62">
+              Venue readiness
+            </p>
+            <h2 className="mt-2 font-serif text-[22px] leading-[1.08] text-white">
+              Scanner is ready for the next guest.
+            </h2>
+            <p className="mt-3 text-[10px] leading-[1.6] text-white/72">
+              Each QR can only be used once per event and photobooth starts automatically after
+              check-in is confirmed.
+            </p>
+
+            <div className="mt-4 space-y-2">
+              {[
+                "Holy Matrimony and Lunch Celebration are processed separately.",
+                "Duplicate scans are blocked automatically.",
+                "Manual fallback stays available via name or WhatsApp.",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-start gap-2 rounded-[16px] border border-white/10 bg-white/8 px-3 py-3 text-[9px] leading-[1.5] text-white/82"
+                >
+                  <ShieldCheck className="mt-[1px] h-3.5 w-3.5 shrink-0 text-[#d6be98]" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={onOpenScanner}
+              className="mt-4 inline-flex h-10 items-center gap-2 rounded-[16px] bg-white px-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#2f241e]"
+            >
+              <ScanLine className="h-4 w-4" />
+              Open Scanner
+            </button>
+          </div>
         </div>
 
-        <div className="mb-[7px] mt-[13px] flex items-center justify-between px-0.5">
-          <h2 className="font-serif text-[14px] leading-none text-charcoal">
-            Latest RSVP Activity
-          </h2>
-          <button type="button" onClick={onOpenGuests} className="text-[7.5px] text-[#776b62]">
-            View all
-          </button>
-        </div>
+        <div className="wa-admin-mobile-section">
+          <div className="wa-admin-mobile-section-head">
+            <h2>Latest RSVP Activity</h2>
+            <button type="button" onClick={onOpenGuests}>
+              View all
+            </button>
+          </div>
 
-        <div className="overflow-hidden rounded-[12px] border border-[rgba(240,232,223,1)] bg-white/74">
-          {loading && (
-            <div className="px-4 py-6 text-center text-[12px] text-muted-foreground">
-              Loading latest responses...
-            </div>
-          )}
+          <div className="wa-admin-mobile-list">
+            {loading && (
+              <div className="px-4 py-8 text-center text-[12px] text-muted-foreground">
+                Loading latest responses...
+              </div>
+            )}
 
-          {!loading && latestActivity.length === 0 && (
-            <div className="px-4 py-6 text-center text-[12px] text-muted-foreground">
-              No guest activity yet.
-            </div>
-          )}
+            {!loading && latestActivity.length === 0 && (
+              <div className="px-4 py-8 text-center text-[12px] text-muted-foreground">
+                No guest activity yet.
+              </div>
+            )}
 
-          {!loading &&
-            latestActivity.map((record, index) => (
-              <button
-                key={record.id}
-                type="button"
-                onClick={() => onSelectGuest(record)}
-                className={`grid min-h-[48px] w-full grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-2 px-[9px] py-2 text-left ${
-                  index > 0 ? "border-t border-[rgba(240,232,223,1)]" : ""
-                }`}
-              >
-                <div className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[#f4eee6] font-serif text-[10px] text-[#705b43]">
-                  {record.fullName
-                    .split(" ")
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((part) => part[0]?.toUpperCase() ?? "")
-                    .join("")}
-                </div>
-                <div className="min-w-0">
-                  <div className="mb-[3px] text-[8.5px] font-semibold text-charcoal">
-                    {record.fullName}
+            {!loading &&
+              latestActivity.map((record) => (
+                <button
+                  key={record.id}
+                  type="button"
+                  onClick={() => onSelectGuest(record)}
+                  className="wa-admin-mobile-row w-full text-left"
+                >
+                  <div className="wa-admin-mobile-avatar">{guestInitials(record.fullName)}</div>
+                  <div className="min-w-0 pr-1">
+                    <div className="truncate text-[9px] font-semibold text-charcoal">
+                      {record.fullName}
+                    </div>
+                    <div className="mt-[3px] truncate text-[7px] text-[#8f8379]">
+                      {record.eventsLabel}
+                    </div>
+                    <div className="mt-[3px] text-[7px] text-[#8f8379]">
+                      {record.submittedAtLabel}
+                    </div>
                   </div>
-                  <div className="truncate text-[6.8px] text-[#91857c]">
-                    {record.attendingLabel} · {record.events[0] ?? record.eventsLabel}
-                  </div>
-                </div>
-                <div className="whitespace-nowrap text-[6.7px] text-[#9c9086]">
-                  {record.submittedAtLabel}
-                </div>
-              </button>
-            ))}
+                  <span className="wa-admin-mobile-status">{record.attendingLabel}</span>
+                  <span className="text-[14px] text-[#a69990]">›</span>
+                </button>
+              ))}
+          </div>
         </div>
       </section>
 

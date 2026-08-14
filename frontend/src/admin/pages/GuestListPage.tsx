@@ -6,6 +6,15 @@ import type { AdminRecord } from "@/admin/types";
 
 const PAGE_SIZE = 10;
 
+function guestInitials(fullName: string) {
+  return fullName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 export function GuestListPage({
   loading,
   records,
@@ -228,132 +237,152 @@ export function GuestListPage({
       </div>
 
       <div className="hidden max-[450px]:block">
-        <div className="rounded-[12px] border border-[rgba(238,229,219,1)] bg-white px-[10px]">
-          <div className="flex h-[38px] items-center gap-[7px]">
-            <Search className="h-[14px] w-[14px] text-[#9a8d83]" />
-            <input
-              ref={searchInputRef}
-              value={search}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search guest or code..."
-              className="h-full w-full border-0 bg-transparent text-[8.5px] text-charcoal outline-none placeholder:text-[#aa9d93]"
-            />
+        <div className="wa-admin-mobile-card px-4 py-4">
+          <p className="text-[8px] font-bold uppercase tracking-[0.26em] text-[#8f8379]">
+            Guest search
+          </p>
+          <h2 className="wa-admin-mobile-title mt-2 text-[22px] leading-[1.04]">
+            RSVP guest records
+          </h2>
+
+          <div className="mt-4 rounded-[18px] border border-[rgba(92,72,57,0.12)] bg-white/90 px-3">
+            <div className="flex h-11 items-center gap-2">
+              <Search className="h-4 w-4 text-[#9a8d83]" />
+              <input
+                ref={searchInputRef}
+                value={search}
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder="Search guest, phone, email, code"
+                className="h-full w-full border-0 bg-transparent text-[11px] text-charcoal outline-none placeholder:text-[#aa9d93]"
+              />
+            </div>
           </div>
-        </div>
 
-        <form onSubmit={onSubmitFilters} className="mt-[7px] grid grid-cols-2 gap-[6px]">
-          <select
-            value={attendingFilter}
-            onChange={(event) => onAttendingFilterChange(event.target.value)}
-            className="h-[33px] rounded-[10px] border border-[rgba(238,229,219,1)] bg-white px-[9px] text-[7.8px] text-[#52463e] outline-none"
-          >
-            <option value="all">All Attendance</option>
-            <option value="yes">Attending</option>
-            <option value="no">Unable to attend</option>
-          </select>
-
-          <select
-            value={eventFilter}
-            onChange={(event) => onEventFilterChange(event.target.value)}
-            className="h-[33px] rounded-[10px] border border-[rgba(238,229,219,1)] bg-white px-[9px] text-[7.8px] text-[#52463e] outline-none"
-          >
-            <option value="all">All Events</option>
-            <option value="holy_matrimony">Holy Matrimony</option>
-            <option value="syukuran">Lunch Celebration</option>
-          </select>
-        </form>
-
-        <div className="mb-[6px] mt-3 flex items-center justify-between px-0.5 text-[8px]">
-          <strong className="font-medium text-charcoal">{records.length} Guests</strong>
-          <span className="text-[#91857c]">Newest ↓</span>
-        </div>
-
-        <div className="overflow-hidden rounded-[13px] border border-[rgba(238,229,219,1)] bg-white">
-          {loading && (
-            <div className="px-4 py-8 text-center text-[12px] text-muted-foreground">
-              Loading guest list...
-            </div>
-          )}
-
-          {!loading && paginatedRecords.length === 0 && (
-            <div className="px-4 py-8 text-center text-[12px] text-muted-foreground">
-              No guests found for this view.
-            </div>
-          )}
-
-          {!loading &&
-            paginatedRecords.map((record, index) => (
-              <button
-                key={record.id}
-                type="button"
-                onClick={() => onSelectGuest(record)}
-                className={`grid w-full grid-cols-[31px_minmax(0,1fr)_auto_12px] items-center gap-2 px-[9px] py-[9px] text-left ${
-                  index > 0 ? "border-t border-[rgba(238,229,219,1)]" : ""
-                }`}
+          <form onSubmit={onSubmitFilters} className="mt-3 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={attendingFilter}
+                onChange={(event) => onAttendingFilterChange(event.target.value)}
+                className="h-11 rounded-[16px] border border-[rgba(92,72,57,0.12)] bg-white/90 px-3 text-[10px] text-[#52463e] outline-none"
               >
-                <div className="grid h-[31px] w-[31px] place-items-center rounded-full bg-[#f4eee6] font-serif text-[10px] text-[#705b43]">
-                  {record.fullName
-                    .split(" ")
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((part) => part[0]?.toUpperCase() ?? "")
-                    .join("")}
-                </div>
+                <option value="all">All Attendance</option>
+                <option value="yes">Attending</option>
+                <option value="no">Unable to attend</option>
+              </select>
 
-                <div className="min-w-0">
-                  <div className="mb-[2px] text-[8.8px] font-semibold text-charcoal">
-                    {record.fullName}
-                  </div>
-                  <div className="text-[6.9px] font-semibold leading-[1.4] text-[#608056]">
-                    {record.attendingLabel}
-                  </div>
-                  <div className="truncate text-[6.9px] leading-[1.4] text-[#8e8178]">
-                    {record.eventsLabel}
-                  </div>
-                  <div className="truncate text-[6.9px] leading-[1.4] text-[#8e8178]">
-                    {record.email || record.phone || record.guestCode || "-"}
-                  </div>
-                </div>
+              <select
+                value={eventFilter}
+                onChange={(event) => onEventFilterChange(event.target.value)}
+                className="h-11 rounded-[16px] border border-[rgba(92,72,57,0.12)] bg-white/90 px-3 text-[10px] text-[#52463e] outline-none"
+              >
+                <option value="all">All Events</option>
+                <option value="holy_matrimony">Holy Matrimony</option>
+                <option value="syukuran">Lunch Celebration</option>
+              </select>
+            </div>
 
-                <span className="rounded-full bg-[#edf4e9] px-[6px] py-1 text-[6.8px] text-[#627d5a]">
-                  {record.guestCode ? "Ready" : "Pending"}
-                </span>
-                <span className="text-[14px] text-[#a69990]">›</span>
-
-                {!record.guestCode && (
-                  <span className="col-span-4 mt-1 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onGenerateGuestCode(record);
-                      }}
-                      disabled={generatingGuestId === record.id}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(200,182,153,0.3)] bg-[#f8f2ea] px-2.5 py-1.5 text-[6.8px] font-semibold uppercase tracking-[0.14em] text-charcoal disabled:opacity-45"
-                    >
-                      {generatingGuestId === record.id ? (
-                        <RefreshCcw className="h-3 w-3 animate-spin" />
-                      ) : null}
-                      {generatingGuestId === record.id ? "Generating..." : "Generate Code"}
-                    </button>
-                  </span>
-                )}
-              </button>
-            ))}
+            <button
+              type="submit"
+              className="wa-admin-mobile-primary-btn inline-flex h-11 w-full items-center justify-center rounded-[18px] text-[10px] font-extrabold uppercase tracking-[0.22em]"
+            >
+              Apply Filters
+            </button>
+          </form>
         </div>
 
-        {!loading && records.length > 0 && (
-          <div className="mt-3 overflow-hidden rounded-[13px] border border-[rgba(238,229,219,1)] bg-white">
-            <PaginationControls
-              page={safePage}
-              totalPages={totalPages}
-              start={rowStart}
-              end={rowEnd}
-              total={records.length}
-              onPageChange={setPage}
-            />
+        <div className="wa-admin-mobile-section">
+          <div className="wa-admin-mobile-section-head">
+            <h2>{records.length} Guests</h2>
+            <button type="button">Newest first</button>
           </div>
-        )}
+
+          <div className="wa-admin-mobile-list">
+            {loading && (
+              <div className="px-4 py-8 text-center text-[12px] text-muted-foreground">
+                Loading guest list...
+              </div>
+            )}
+
+            {!loading && paginatedRecords.length === 0 && (
+              <div className="px-4 py-8 text-center text-[12px] text-muted-foreground">
+                No guests found for this view.
+              </div>
+            )}
+
+            {!loading &&
+              paginatedRecords.map((record) => (
+                <button
+                  key={record.id}
+                  type="button"
+                  onClick={() => onSelectGuest(record)}
+                  className="w-full border-t border-[rgba(240,232,223,1)] px-3 py-3 text-left first:border-t-0"
+                >
+                  <div className="grid grid-cols-[34px_minmax(0,1fr)_auto] items-start gap-3">
+                    <div className="wa-admin-mobile-avatar h-[34px] w-[34px]">
+                      {guestInitials(record.fullName)}
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="truncate text-[10px] font-semibold text-charcoal">
+                        {record.fullName}
+                      </div>
+                      <div className="mt-1 text-[7.5px] font-semibold uppercase tracking-[0.14em] text-[#6f8f63]">
+                        {record.attendingLabel}
+                      </div>
+                      <div className="mt-1 truncate text-[8px] text-[#8e8178]">
+                        {record.eventsLabel}
+                      </div>
+                      <div className="mt-1 truncate text-[8px] text-[#8e8178]">
+                        {record.email || record.phone || "-"}
+                      </div>
+                      <div className="mt-1 text-[7px] uppercase tracking-[0.14em] text-[#aa9d93]">
+                        {record.guestCode || "Guest code empty"}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="wa-admin-mobile-status">
+                        {record.guestCode ? "Ready" : "Pending"}
+                      </span>
+                      <span className="text-[14px] text-[#a69990]">›</span>
+                    </div>
+                  </div>
+
+                  {!record.guestCode && (
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onGenerateGuestCode(record);
+                        }}
+                        disabled={generatingGuestId === record.id}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(200,182,153,0.3)] bg-[#f8f2ea] px-3 py-2 text-[7px] font-bold uppercase tracking-[0.18em] text-charcoal disabled:opacity-45"
+                      >
+                        {generatingGuestId === record.id ? (
+                          <RefreshCcw className="h-3 w-3 animate-spin" />
+                        ) : null}
+                        {generatingGuestId === record.id ? "Generating..." : "Generate Code"}
+                      </button>
+                    </div>
+                  )}
+                </button>
+              ))}
+          </div>
+
+          {!loading && records.length > 0 && (
+            <div className="wa-admin-mobile-soft-card mt-3 overflow-hidden">
+              <PaginationControls
+                page={safePage}
+                totalPages={totalPages}
+                start={rowStart}
+                end={rowEnd}
+                total={records.length}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

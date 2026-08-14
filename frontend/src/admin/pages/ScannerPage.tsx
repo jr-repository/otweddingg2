@@ -55,6 +55,7 @@ export function ScannerPage({
   const [feedback, setFeedback] = useState<ScanFeedback | null>(null);
   const [search, setSearch] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [manualPendingId, setManualPendingId] = useState<number | null>(null);
   const [photoboothSession, setPhotoboothSession] = useState<{
     guest: PhotoboothSessionGuest;
@@ -86,6 +87,20 @@ export function ScannerPage({
       )
       .slice(0, 8);
   }, [eventRecords, trimmedSearch]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const syncViewport = () => {
+      setIsMobileDevice(window.innerWidth <= 450);
+    };
+
+    syncViewport();
+    window.addEventListener("resize", syncViewport);
+    return () => window.removeEventListener("resize", syncViewport);
+  }, []);
 
   useEffect(() => {
     const successAudio = new Audio(checkInSuccessSoundSrc);
@@ -275,6 +290,10 @@ export function ScannerPage({
         return;
       }
 
+      if (isMobileDevice) {
+        return;
+      }
+
       const target = document.getElementById("wedding-checkin-scanner");
       if (!target || scannerRef.current) return;
 
@@ -349,6 +368,7 @@ export function ScannerPage({
       }
     };
   }, [
+    isMobileDevice,
     selectedEvent,
     token,
     onRecordUpdated,
@@ -424,132 +444,157 @@ export function ScannerPage({
   return (
     <section
       id="scanner-fullscreen-shell"
-      className="rounded-[20px] border border-[rgba(200,182,153,0.3)] bg-[linear-gradient(180deg,#171311_0%,#251d18_100%)] p-3 text-ivory shadow-[0_20px_50px_-36px_rgba(63,47,37,0.2)] sm:p-4 max-[450px]:rounded-[26px] max-[450px]:border-[rgba(200,182,153,0.18)] max-[450px]:p-3.5"
+      className="rounded-[20px] border border-[rgba(200,182,153,0.3)] bg-[linear-gradient(180deg,#171311_0%,#251d18_100%)] p-3 text-ivory shadow-[0_20px_50px_-36px_rgba(63,47,37,0.2)] sm:p-4 max-[450px]:rounded-none max-[450px]:border-0 max-[450px]:bg-transparent max-[450px]:p-0 max-[450px]:shadow-none"
     >
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between max-[450px]:hidden">
-        <div>
-          <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-ivory/62">
-            Venue Check-In
+      <div className="hidden max-[450px]:block">
+        <div className="wa-admin-mobile-card mb-3 px-4 py-4 text-charcoal">
+          <p className="text-[8px] font-bold uppercase tracking-[0.26em] text-[#8f8379]">
+            Venue scanner
           </p>
-          <h3 className="mt-2 font-serif text-2xl leading-tight text-ivory sm:text-3xl">
-            Full-screen QR scanner for guest self check-in
-          </h3>
+          <h2 className="wa-admin-mobile-title mt-2 text-[22px] leading-[1.04]">
+            Scanner available on larger screens
+          </h2>
+          <p className="mt-2 text-[10px] leading-[1.55] text-[#8f8379]">
+            The live QR scanner is available on tablet and desktop devices. Please open this page on
+            a larger screen to run venue check-in.
+          </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void openFullscreen()}
-          className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-white/10 max-[450px]:h-11 max-[450px]:w-full max-[450px]:justify-center max-[450px]:rounded-[16px]"
-        >
-          <Camera className="h-3.5 w-3.5" />
-          {isFullscreen ? "Scanner Open" : "Open Full Screen"}
-        </button>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[3fr_1fr] max-[450px]:mt-0">
-        <div className="rounded-[18px] border border-white/10 bg-white/5 p-3 max-[450px]:rounded-[22px] max-[450px]:bg-white/6">
-          <div className="flex flex-wrap gap-2.5">
-            <EventToggle
-              active={selectedEvent === "holy_matrimony"}
-              label="Holy Matrimony"
-              onClick={() => setSelectedEvent("holy_matrimony")}
-            />
-            <EventToggle
-              active={selectedEvent === "syukuran"}
-              label="Lunch Celebration"
-              onClick={() => setSelectedEvent("syukuran")}
-            />
+      {isMobileDevice ? null : (
+        <>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between max-[450px]:hidden">
+            <div>
+              <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-ivory/62">
+                Venue Check-In
+              </p>
+              <h3 className="mt-2 font-serif text-2xl leading-tight text-ivory sm:text-3xl">
+                Full-screen QR scanner for guest self check-in
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => void openFullscreen()}
+              className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-white/10 max-[450px]:h-11 max-[450px]:w-full max-[450px]:justify-center max-[450px]:rounded-[16px]"
+            >
+              <Camera className="h-3.5 w-3.5" />
+              {isFullscreen ? "Scanner Open" : "Open Full Screen"}
+            </button>
           </div>
 
-          <div className="mt-4 overflow-hidden rounded-[18px] border border-white/10 bg-black/35">
-            <div className="relative">
-              <div
-                id="wedding-checkin-scanner"
-                className="aspect-[4/3] min-h-[360px] w-full overflow-hidden [&_video]:h-full [&_video]:w-full [&_video]:object-cover xl:min-h-[600px] max-[450px]:min-h-[280px]"
-              />
-              <div className="pointer-events-none absolute inset-x-4 bottom-4 flex justify-center">
-                <div className="rounded-full border border-white/10 bg-[rgba(14,10,8,0.64)] px-4 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-ivory/82 shadow-lg backdrop-blur-sm">
-                  {feedback?.kind === "loading"
-                    ? "Processing check-in..."
-                    : `Align ${selectedEventLabel} QR inside the frame`}
+          <div className="mt-4 grid gap-4 xl:grid-cols-[3fr_1fr] max-[450px]:mt-0">
+            <div className="rounded-[18px] border border-white/10 bg-white/5 p-3 max-[450px]:rounded-[24px] max-[450px]:border-[rgba(92,72,57,0.12)] max-[450px]:bg-[linear-gradient(180deg,#231b17_0%,#312620_100%)]">
+              <div className="flex flex-wrap gap-2.5">
+                <EventToggle
+                  active={selectedEvent === "holy_matrimony"}
+                  label="Holy Matrimony"
+                  onClick={() => setSelectedEvent("holy_matrimony")}
+                />
+                <EventToggle
+                  active={selectedEvent === "syukuran"}
+                  label="Lunch Celebration"
+                  onClick={() => setSelectedEvent("syukuran")}
+                />
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-[18px] border border-white/10 bg-black/35">
+                <div className="relative">
+                  <div
+                    id="wedding-checkin-scanner"
+                    className="aspect-[4/3] min-h-[360px] w-full overflow-hidden [&_video]:h-full [&_video]:w-full [&_video]:object-cover xl:min-h-[600px] max-[450px]:min-h-[280px]"
+                  />
+                  <div className="pointer-events-none absolute inset-x-4 bottom-4 flex justify-center">
+                    <div className="rounded-full border border-white/10 bg-[rgba(14,10,8,0.64)] px-4 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-ivory/82 shadow-lg backdrop-blur-sm">
+                      {feedback?.kind === "loading"
+                        ? "Processing check-in..."
+                        : `Align ${selectedEventLabel} QR inside the frame`}
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              <div className="mt-3 flex items-start gap-2 rounded-[14px] border border-white/10 bg-white/6 px-3 py-3 text-[12px] text-ivory/82 max-[450px]:hidden">
+                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 text-champagne" />
+                <p>
+                  Each QR is accepted once per selected event. After check-in succeeds, a photobooth
+                  session starts automatically and the scanner returns after the session ends.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-[18px] border border-white/10 bg-white/6 p-4 max-[450px]:rounded-[24px] max-[450px]:border-[rgba(92,72,57,0.12)] max-[450px]:bg-white/86 max-[450px]:text-charcoal">
+              <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-ivory/62 max-[450px]:text-[#8f8379]">
+                Forgot QR?
+              </p>
+              <h4 className="mt-2 font-serif text-xl text-ivory max-[450px]:text-charcoal">
+                Find guest by name or WhatsApp
+              </h4>
+              <p className="mt-2 text-[12px] leading-relaxed text-ivory/66 max-[450px]:text-[#8f8379]">
+                Search first to show matching guests registered for {selectedEventLabel}.
+              </p>
+              <div className="relative mt-4">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ivory/52 max-[450px]:text-[#9a8d83]" />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search guest name, phone, email, guest code"
+                  className="block h-10 w-full rounded-[12px] border border-white/10 bg-white/8 px-10 text-[12px] text-ivory outline-none placeholder:text-ivory/42 focus:border-champagne/60 max-[450px]:h-11 max-[450px]:rounded-[16px] max-[450px]:border-[rgba(92,72,57,0.12)] max-[450px]:bg-white max-[450px]:text-charcoal max-[450px]:placeholder:text-[#aa9d93]"
+                />
+              </div>
+
+              <div className="mt-4 space-y-2.5 max-[450px]:max-h-[40dvh] max-[450px]:overflow-y-auto max-[450px]:pr-1">
+                {!trimmedSearch && (
+                  <div className="rounded-[14px] border border-dashed border-white/10 bg-black/10 px-3 py-4 text-[12px] leading-relaxed text-ivory/58 max-[450px]:border-[rgba(92,72,57,0.12)] max-[450px]:bg-[#f7f1ea] max-[450px]:text-[#8f8379]">
+                    No guest list is shown by default. Type a guest name, WhatsApp number, email, or
+                    guest code to find RSVP records for {selectedEventLabel}.
+                  </div>
+                )}
+
+                {trimmedSearch && searchResults.length === 0 && (
+                  <div className="rounded-[14px] border border-dashed border-white/10 bg-black/10 px-3 py-4 text-[12px] leading-relaxed text-ivory/58 max-[450px]:border-[rgba(92,72,57,0.12)] max-[450px]:bg-[#f7f1ea] max-[450px]:text-[#8f8379]">
+                    No matching guest was found for {selectedEventLabel}.
+                  </div>
+                )}
+
+                {trimmedSearch &&
+                  searchResults.map((record) => (
+                    <div
+                      key={record.id}
+                      className="rounded-[14px] border border-white/10 bg-black/10 px-3 py-3 max-[450px]:rounded-[18px] max-[450px]:border-[rgba(92,72,57,0.12)] max-[450px]:bg-[#fdfaf6]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[12px] font-medium text-ivory max-[450px]:text-charcoal">
+                            {record.fullName}
+                          </p>
+                          <p className="mt-1 text-[11px] text-ivory/64 max-[450px]:text-[#8f8379]">
+                            {record.guestCode}
+                          </p>
+                          <p className="mt-1.5 text-[11px] text-ivory/64 max-[450px]:text-[#8f8379]">
+                            {selectedEventLabel} · {record.attendingLabel}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void handleManualCheckIn(record)}
+                          disabled={busyRef.current || manualPendingId === record.id}
+                          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/8 px-3 py-2 text-[0.58rem] font-medium uppercase tracking-[0.2em] text-ivory transition-colors hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-45 max-[450px]:border-[rgba(92,72,57,0.12)] max-[450px]:bg-[#f4eadb] max-[450px]:text-charcoal"
+                        >
+                          {manualPendingId === record.id ? (
+                            <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          )}
+                          {manualPendingId === record.id ? "Checking..." : "Check In"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
-
-          <div className="mt-3 flex items-start gap-2 rounded-[14px] border border-white/10 bg-white/6 px-3 py-3 text-[12px] text-ivory/82 max-[450px]:hidden">
-            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 text-champagne" />
-            <p>
-              Each QR is accepted once per selected event. After check-in succeeds, a photobooth
-              session starts automatically and the scanner returns after the session ends.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-[18px] border border-white/10 bg-white/6 p-4 max-[450px]:rounded-[22px] max-[450px]:bg-white/6">
-          <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-ivory/62">
-            Forgot QR?
-          </p>
-          <h4 className="mt-2 font-serif text-xl text-ivory">Find guest by name or WhatsApp</h4>
-          <p className="mt-2 text-[12px] leading-relaxed text-ivory/66">
-            Search first to show matching guests registered for {selectedEventLabel}.
-          </p>
-          <div className="relative mt-4">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ivory/52" />
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search guest name, phone, email, guest code"
-              className="block h-10 w-full rounded-[12px] border border-white/10 bg-white/8 px-10 text-[12px] text-ivory outline-none placeholder:text-ivory/42 focus:border-champagne/60"
-            />
-          </div>
-
-          <div className="mt-4 space-y-2.5 max-[450px]:max-h-[40dvh] max-[450px]:overflow-y-auto max-[450px]:pr-1">
-            {!trimmedSearch && (
-              <div className="rounded-[14px] border border-dashed border-white/10 bg-black/10 px-3 py-4 text-[12px] leading-relaxed text-ivory/58">
-                No guest list is shown by default. Type a guest name, WhatsApp number, email, or
-                guest code to find RSVP records for {selectedEventLabel}.
-              </div>
-            )}
-
-            {trimmedSearch && searchResults.length === 0 && (
-              <div className="rounded-[14px] border border-dashed border-white/10 bg-black/10 px-3 py-4 text-[12px] leading-relaxed text-ivory/58">
-                No matching guest was found for {selectedEventLabel}.
-              </div>
-            )}
-
-            {trimmedSearch &&
-              searchResults.map((record) => (
-                <div
-                  key={record.id}
-                  className="rounded-[14px] border border-white/10 bg-black/10 px-3 py-3 max-[450px]:rounded-[18px]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[12px] font-medium text-ivory">{record.fullName}</p>
-                      <p className="mt-1 text-[11px] text-ivory/64">{record.guestCode}</p>
-                      <p className="mt-1.5 text-[11px] text-ivory/64">
-                        {selectedEventLabel} · {record.attendingLabel}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => void handleManualCheckIn(record)}
-                      disabled={busyRef.current || manualPendingId === record.id}
-                      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/8 px-3 py-2 text-[0.58rem] font-medium uppercase tracking-[0.2em] text-ivory transition-colors hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      {manualPendingId === record.id ? (
-                        <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      )}
-                      {manualPendingId === record.id ? "Checking..." : "Check In"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {feedback && (
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-charcoal/28 px-4">

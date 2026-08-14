@@ -15,105 +15,94 @@ export function MorePage({
 }) {
   return (
     <section className="space-y-4 max-[450px]:space-y-3">
-      <div className="hidden rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] max-[450px]:block max-[450px]:rounded-[14px] max-[450px]:border-[rgba(200,182,153,0.22)] max-[450px]:bg-white/80 max-[450px]:p-0 max-[450px]:shadow-none">
-        <div className="flex items-center gap-3 px-3.5 py-3.5">
-          <div className="grid h-10 w-10 place-items-center rounded-full bg-[linear-gradient(145deg,#aa8455,#725638)] text-sm font-medium text-white">
-            L
+      <div className="hidden max-[450px]:block">
+        <div className="wa-admin-mobile-card px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="wa-admin-mobile-abstract !mx-0 !h-12 !w-12 text-[16px] font-semibold">
+              L
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[8px] font-bold uppercase tracking-[0.26em] text-[#8f8379]">
+                Admin profile
+              </p>
+              <h2 className="wa-admin-mobile-title mt-1 text-[20px] leading-none">
+                L &amp; A Admin
+              </h2>
+              <p className="mt-1 truncate text-[10px] text-[#8f8379]">
+                Signed in as {user.displayName || user.username}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-serif text-[0.95rem] leading-none text-charcoal">
-              L &amp; A Admin
-            </h3>
-            <p className="mt-1 truncate text-[0.44rem] uppercase tracking-[0.22em] text-taupe">
-              Signed in as {user.username}
-            </p>
-          </div>
-          <span className="text-sm text-taupe">›</span>
         </div>
       </div>
 
       <div className="hidden max-[450px]:block">
-        <div className="mb-2 px-1">
-          <p className="text-[0.44rem] font-medium uppercase tracking-[0.24em] text-taupe">
-            Quick Exports
-          </p>
+        <div className="wa-admin-mobile-section-head px-1">
+          <h2>Quick Actions</h2>
+          <button type="button">Admin tools</button>
         </div>
 
-        <div className="overflow-hidden rounded-[14px] border border-[rgba(200,182,153,0.22)] bg-white/82 shadow-[0_8px_22px_-18px_rgba(63,47,37,0.18)]">
+        <div className="wa-admin-mobile-list">
           <button
             type="button"
             onClick={() => onExport("excel")}
-            className="flex w-full items-center gap-3 border-b border-[rgba(200,182,153,0.18)] px-3.5 py-3 text-left"
+            className="wa-admin-mobile-row w-full text-left"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-cream text-charcoal">
-              <Download className="h-4 w-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <strong className="block text-[0.58rem] font-medium uppercase tracking-[0.16em] text-charcoal">
+            <div className="wa-admin-mobile-avatar">
+              <Download className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 pr-1">
+              <div className="text-[9px] font-semibold text-charcoal">
                 {exporting === "excel" ? "Preparing Excel" : "Export Excel"}
-              </strong>
-              <span className="mt-1 block text-[0.42rem] uppercase tracking-[0.16em] text-taupe">
-                Download RSVP guest data
-              </span>
-            </span>
-            <span className="text-sm text-taupe">›</span>
+              </div>
+              <div className="mt-[3px] text-[7px] text-[#8f8379]">Download RSVP guest data</div>
+            </div>
+            <span className="wa-admin-mobile-status">File</span>
+            <span className="text-[14px] text-[#a69990]">›</span>
           </button>
 
           <button
             type="button"
             onClick={() => onExport("pdf")}
-            className="flex w-full items-center gap-3 px-3.5 py-3 text-left"
+            className="wa-admin-mobile-row w-full text-left"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-cream text-charcoal">
-              <Download className="h-4 w-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <strong className="block text-[0.58rem] font-medium uppercase tracking-[0.16em] text-charcoal">
+            <div className="wa-admin-mobile-avatar">
+              <Download className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 pr-1">
+              <div className="text-[9px] font-semibold text-charcoal">
                 {exporting === "pdf" ? "Preparing PDF" : "Export PDF"}
-              </strong>
-              <span className="mt-1 block text-[0.42rem] uppercase tracking-[0.16em] text-taupe">
-                Generate compact RSVP report
-              </span>
-            </span>
-            <span className="text-sm text-taupe">›</span>
+              </div>
+              <div className="mt-[3px] text-[7px] text-[#8f8379]">Generate compact RSVP report</div>
+            </div>
+            <span className="wa-admin-mobile-status">Report</span>
+            <span className="text-[14px] text-[#a69990]">›</span>
           </button>
-        </div>
-      </div>
 
-      <div className="hidden max-[450px]:block">
-        <div className="overflow-hidden rounded-[14px] border border-[rgba(200,182,153,0.22)] bg-white/82 shadow-[0_8px_22px_-18px_rgba(63,47,37,0.18)]">
-          <button type="button" className="flex w-full items-center gap-3 px-3.5 py-3 text-left">
-            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-cream text-charcoal">
-              <User2 className="h-4 w-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <strong className="block text-[0.58rem] font-medium uppercase tracking-[0.16em] text-charcoal">
-                Admin Profile
-              </strong>
-              <span className="mt-1 block text-[0.42rem] uppercase tracking-[0.16em] text-taupe">
+          <button type="button" className="wa-admin-mobile-row w-full text-left">
+            <div className="wa-admin-mobile-avatar">
+              <User2 className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 pr-1">
+              <div className="text-[9px] font-semibold text-charcoal">Admin Profile</div>
+              <div className="mt-[3px] text-[7px] text-[#8f8379]">
                 {user.displayName || user.username}
-              </span>
-            </span>
-            <span className="text-sm text-taupe">›</span>
+              </div>
+            </div>
+            <span className="wa-admin-mobile-status">Account</span>
+            <span className="text-[14px] text-[#a69990]">›</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onLogout}
-            className="flex w-full items-center gap-3 border-t border-[rgba(200,182,153,0.18)] px-3.5 py-3 text-left"
-          >
-            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-[#f5e8e3] text-[#8d4d3e]">
-              <LogOut className="h-4 w-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <strong className="block text-[0.58rem] font-medium uppercase tracking-[0.16em] text-charcoal">
-                Logout
-              </strong>
-              <span className="mt-1 block text-[0.42rem] uppercase tracking-[0.16em] text-taupe">
-                End this admin session
-              </span>
-            </span>
-            <span className="text-sm text-taupe">›</span>
+          <button type="button" onClick={onLogout} className="wa-admin-mobile-row w-full text-left">
+            <div className="wa-admin-mobile-avatar bg-[#f5e8e3] text-[#8d4d3e]">
+              <LogOut className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0 pr-1">
+              <div className="text-[9px] font-semibold text-charcoal">Logout</div>
+              <div className="mt-[3px] text-[7px] text-[#8f8379]">End this admin session</div>
+            </div>
+            <span className="wa-admin-mobile-status">Exit</span>
+            <span className="text-[14px] text-[#a69990]">›</span>
           </button>
         </div>
       </div>
