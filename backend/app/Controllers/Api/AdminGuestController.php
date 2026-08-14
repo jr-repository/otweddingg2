@@ -253,6 +253,6 @@ class AdminGuestController extends ApiController
 
     private function formatEventLabel(string $eventKey): string
     {
-        return $eventKey === 'holy_matrimony' ? 'Holy Matrimony' : 'Syukuran';
+        return $eventKey === 'holy_matrimony' ? 'Holy Matrimony' : 'Lunch Celebration';
     }
 }

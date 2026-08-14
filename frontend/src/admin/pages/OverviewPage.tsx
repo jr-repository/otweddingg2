@@ -41,7 +41,7 @@ export function OverviewPage({
           <MetricCard label="Confirmed Seats" value={summary.confirmedSeats} />
           <MetricCard label="Pending Check-In" value={summary.pendingCheckIns} />
           <MetricCard label="Checked In - Matrimony" value={summary.checkedInHolyMatrimony} />
-          <MetricCard label="Checked In - Syukuran" value={summary.checkedInSyukuran} />
+          <MetricCard label="Checked In - Lunch Celebration" value={summary.checkedInSyukuran} />
           <MetricCard label="Unable to Attend" value={summary.attendingNo} />
           <MetricCard label="Checked-In Guests" value={summary.checkedInGuests} />
         </section>
@@ -138,7 +138,7 @@ export function OverviewPage({
 
           <div className="mt-4 space-y-2.5">
             {[
-              "Holy Matrimony and Syukuran are checked separately.",
+              "Holy Matrimony and Lunch Celebration are checked separately.",
               "Duplicate scans are blocked automatically.",
               "Manual fallback search is available by guest name or WhatsApp.",
             ].map((item) => (

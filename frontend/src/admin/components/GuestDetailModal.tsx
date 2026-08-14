@@ -80,7 +80,7 @@ export function GuestDetailModal({
             />
             <DetailRow
               icon={<CheckCircle2 className="h-4 w-4" />}
-              label="Syukuran Check-In"
+              label="Lunch Celebration Check-In"
               value={`${record.syukuranCheckedInLabel}${record.syukuranCheckedInBy ? ` · ${record.syukuranCheckedInBy}` : ""}`}
             />
           </div>

@@ -14,7 +14,7 @@ export const EMPTY_SUMMARY: AdminSummary = {
 
 export const EVENT_LABELS: Record<EventKey, string> = {
   holy_matrimony: "Holy Matrimony",
-  syukuran: "Syukuran",
+  syukuran: "Lunch Celebration",
 };
 
 export function getEventLabel(eventKey: EventKey) {

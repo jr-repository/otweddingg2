@@ -270,7 +270,7 @@ export function ScannerPage({
             />
             <EventToggle
               active={selectedEvent === "syukuran"}
-              label="Syukuran"
+              label="Lunch Celebration"
               onClick={() => setSelectedEvent("syukuran")}
             />
           </div>

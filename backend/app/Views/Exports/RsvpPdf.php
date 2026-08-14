@@ -4,69 +4,175 @@
     <meta charset="UTF-8">
     <title>Wedding RSVP Report</title>
     <style>
-      body { font-family: DejaVu Sans, sans-serif; color: #30261f; font-size: 12px; margin: 24px; }
-      h1, h2 { font-family: Georgia, serif; margin: 0; }
-      .eyebrow { text-transform: uppercase; letter-spacing: 0.35em; color: #8f7f72; font-size: 10px; margin-bottom: 12px; }
-      .hero { border: 1px solid #e3d6c9; border-radius: 18px; padding: 24px; background: #fcf8f2; }
-      .hero p { margin: 8px 0 0; color: #6e6258; }
-      .summary { width: 100%; border-collapse: separate; border-spacing: 10px; margin: 20px 0; }
-      .summary td { width: 25%; border: 1px solid #eadfd4; background: #fffdf9; border-radius: 14px; padding: 16px; vertical-align: top; }
-      .summary-label { display: block; text-transform: uppercase; letter-spacing: 0.25em; color: #8f7f72; font-size: 9px; margin-bottom: 8px; }
-      .summary-value { font-family: Georgia, serif; font-size: 24px; color: #30261f; }
-      table.report { width: 100%; border-collapse: collapse; margin-top: 20px; }
-      .report th { background: #6f5946; color: #fff; padding: 10px; text-align: left; font-size: 11px; }
-      .report td { border: 1px solid #eadfd4; padding: 10px; font-size: 11px; }
-      .report tbody tr:nth-child(even) { background: #fbf7f2; }
-      .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 10px; }
-      .badge-yes { background: #efe1cc; color: #5c4332; }
-      .badge-no { background: #f3ebe3; color: #7d6552; }
+      body {
+        font-family: DejaVu Sans, sans-serif;
+        color: #2b221c;
+        font-size: 8px;
+        line-height: 1.25;
+        margin: 14px 16px 18px;
+      }
+
+      h1, h2, h3 {
+        font-family: Georgia, serif;
+        margin: 0;
+        font-weight: normal;
+      }
+
+      .report-shell {
+        border: 1px solid #dccfc3;
+        padding: 12px 12px 10px;
+      }
+
+      .header-table,
+      .report-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .header-table td {
+        vertical-align: top;
+      }
+
+      .brand {
+        font-size: 18px;
+        color: #241b15;
+      }
+
+      .subtitle {
+        margin-top: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.28em;
+        font-size: 7px;
+        color: #8b7664;
+      }
+
+      .meta-block {
+        text-align: right;
+        font-size: 7px;
+        color: #6f6257;
+        white-space: nowrap;
+      }
+
+      .meta-line {
+        margin-bottom: 3px;
+      }
+
+      .section-line {
+        margin: 10px 0 8px;
+        border-top: 1px solid #dccfc3;
+      }
+
+      .table-title {
+        margin-bottom: 6px;
+        font-size: 11px;
+        color: #241b15;
+      }
+
+      .report-table thead th {
+        padding: 6px 4px;
+        background: #5f4d40;
+        border: 1px solid #5f4d40;
+        color: #fffaf5;
+        font-size: 6.8px;
+        font-weight: bold;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .report-table tbody td {
+        padding: 5px 4px;
+        border: 1px solid #e4d8cd;
+        font-size: 7px;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
+
+      .report-table tbody tr:nth-child(even) {
+        background: #faf6f1;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .right {
+        text-align: right;
+      }
+
+      .footer {
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid #e4d8cd;
+        text-align: center;
+        font-size: 6.8px;
+        color: #8a7a6e;
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
-    <section class="hero">
-      <p class="eyebrow">Wedding RSVP Report</p>
-      <h1>L &amp; A Invitation Dashboard</h1>
-      <p>Generated on <?= esc($generatedAt->format('d M Y, H:i')) ?> WIB</p>
-    </section>
-
-    <table class="summary">
-      <tr>
-        <td><span class="summary-label">Total Responses</span><span class="summary-value"><?= esc((string) $summary['totalResponses']) ?></span></td>
-        <td><span class="summary-label">Attending</span><span class="summary-value"><?= esc((string) $summary['attendingYes']) ?></span></td>
-        <td><span class="summary-label">Unable to Attend</span><span class="summary-value"><?= esc((string) $summary['attendingNo']) ?></span></td>
-        <td><span class="summary-label">Confirmed Seats</span><span class="summary-value"><?= esc((string) $summary['confirmedSeats']) ?></span></td>
-      </tr>
-    </table>
-
-    <table class="report">
-      <thead>
+    <section class="report-shell">
+      <table class="header-table">
         <tr>
-          <th>Submitted</th>
-          <th>Guest Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Attendance</th>
-          <th>Guests</th>
-          <th>Events</th>
+          <td>
+            <h1 class="brand">Luis &amp; Angel RSVP Report</h1>
+            <div class="subtitle">Wedding Administration Report</div>
+          </td>
+          <td class="meta-block">
+            <div class="meta-line">Generated: <?= esc($generatedAt->format('d M Y H:i')) ?> WIB</div>
+            <div class="meta-line">Date: 23 - 24 April 2027</div>
+            <div class="meta-line">Location: Jakarta, Indonesia</div>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($records as $record): ?>
+      </table>
+
+      <div class="section-line"></div>
+
+      <h2 class="table-title">Guest Responses</h2>
+
+      <table class="report-table">
+        <thead>
           <tr>
-            <td><?= esc($record['submittedAtLabel']) ?></td>
-            <td><?= esc($record['fullName']) ?></td>
-            <td><?= esc($record['email']) ?></td>
-            <td><?= esc($record['phone'] !== '' ? $record['phone'] : '-') ?></td>
-            <td>
-              <span class="badge <?= $record['attending'] === 'yes' ? 'badge-yes' : 'badge-no' ?>">
-                <?= esc($record['attendingLabel']) ?>
-              </span>
-            </td>
-            <td><?= esc($record['guestsLabel']) ?></td>
-            <td><?= esc($record['eventsLabel']) ?></td>
+            <th style="width:4%;">No</th>
+            <th style="width:13%;">Submitted</th>
+            <th style="width:16%;">Guest Name</th>
+            <th style="width:28%;">Contact</th>
+            <th style="width:11%;">Response</th>
+            <th style="width:8%;">Guests</th>
+            <th style="width:20%;">Reserved Event</th>
           </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <?php if ($records === []): ?>
+            <tr>
+              <td colspan="7" class="center">No RSVP responses are available.</td>
+            </tr>
+          <?php endif; ?>
+
+          <?php foreach ($records as $index => $record): ?>
+            <?php
+              $submitted = str_replace(', ', ' ', (string) $record['submittedAtLabel']);
+              $contact = trim($record['email'] . ($record['phone'] !== '' ? ' · ' . $record['phone'] : ''));
+              $events = str_replace(', ', ' · ', (string) $record['eventsLabel']);
+            ?>
+            <tr>
+              <td class="center"><?= esc((string) ($index + 1)) ?></td>
+              <td class="center"><?= esc($submitted) ?></td>
+              <td><?= esc($record['fullName']) ?></td>
+              <td><?= esc($contact !== '' ? $contact : '-') ?></td>
+              <td class="center"><?= esc($record['attendingLabel']) ?></td>
+              <td class="center"><?= esc($record['guestsLabel']) ?></td>
+              <td><?= esc($events) ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+
+      <div class="footer">
+        Total Responses: <?= esc((string) $summary['totalResponses']) ?> · Attending: <?= esc((string) $summary['attendingYes']) ?> · Unable to Attend: <?= esc((string) $summary['attendingNo']) ?> · Confirmed Seats: <?= esc((string) $summary['confirmedSeats']) ?>
+      </div>
+    </section>
   </body>
 </html>

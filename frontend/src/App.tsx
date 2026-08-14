@@ -23,12 +23,6 @@ const CLOSING =
   "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=2000&q=80";
 const BACKSOUND_SRC = "/i-love-you.mp3";
 
-type GuestPassInfo = {
-  guestCode: string;
-  passUrl: string;
-  qrCodeDataUrl: string;
-};
-
 type DashboardRecord = {
   id: number;
   fullName: string;
@@ -430,7 +424,9 @@ function Header() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-40 transition-all duration-500 ${
-        scrolled ? "bg-ivory/85 backdrop-blur-md border-b border-border/70" : "bg-transparent"
+        scrolled
+          ? "border-b border-border/70 bg-ivory/85 backdrop-blur-md"
+          : "border-b border-champagne/40 bg-transparent"
       }`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
@@ -498,12 +494,21 @@ function Hero() {
           </span>
           Angel Mayjesty
         </h1>
+        <p
+          data-reveal
+          data-reveal-delay="210"
+          className="reveal mt-6 max-w-2xl text-sm leading-relaxed text-ivory/88 md:text-base"
+        >
+          Together with our families, we joyfully invite you to celebrate our wedding.
+        </p>
         <div
           data-reveal
           data-reveal-delay="260"
           className="reveal mt-8 flex flex-col items-center gap-2"
         >
-          <p className="font-serif text-lg italic text-ivory/90 md:text-xl">23 — 24 April 2027</p>
+          <p className="font-serif text-lg italic text-ivory/90 md:text-xl">
+            Friday, 23 April 2027
+          </p>
           <p className="text-[0.7rem] uppercase tracking-[0.35em] text-ivory/75">
             Jakarta, Indonesia
           </p>
@@ -617,15 +622,15 @@ function Details() {
       label: "Holy Matrimony",
       title: "Friday, 23 April 2027",
       sub: "08:30 AM",
-      note: "Jakarta Cathedral Church",
+      note: "Jakarta Cathedral",
       extra: "Jakarta, Indonesia",
     },
     {
-      label: "Syukuran",
-      title: "Saturday, 24 April 2027",
-      sub: "Jakarta, Indonesia",
-      note: "Full address and event time will be updated soon",
-      extra: "Details to follow",
+      label: "Lunch Celebration",
+      title: "Jakarta, Indonesia",
+      sub: "",
+      note: "",
+      extra: "",
     },
   ];
 
@@ -662,13 +667,13 @@ function Details() {
                 </p>
               </div>
 
-              <div className="mt-8 grid gap-0 rounded-[22px] border border-champagne/20 bg-[linear-gradient(180deg,rgba(248,243,235,0.52),rgba(255,255,255,0.76))] md:mt-10 md:grid-cols-2">
+              <div className="mt-8 grid gap-0 rounded-[22px] border border-champagne/20 bg-[linear-gradient(180deg,rgba(248,243,235,0.52),rgba(255,255,255,0.76))] md:mt-10 lg:grid-cols-2">
                 {items.map((item, index) => (
                   <article
                     key={item.label}
                     className={[
-                      "relative flex min-h-[220px] flex-col items-center justify-center px-5 py-8 text-center sm:min-h-[240px] sm:px-8 sm:py-10 md:min-h-[290px] md:px-10",
-                      index !== items.length - 1 ? "border-b border-champagne/18 md:border-b-0 md:border-r" : "",
+                      "relative flex min-h-[220px] flex-col items-center justify-center px-5 py-8 text-center sm:min-h-[240px] sm:px-8 sm:py-10 md:min-h-[270px] md:px-10 lg:min-h-[290px]",
+                      index !== items.length - 1 ? "border-b border-champagne/18 lg:border-b-0 lg:border-r" : "",
                     ].join(" ")}
                   >
                     <span className="absolute inset-x-10 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,170,129,0.55),transparent)]" />
@@ -677,18 +682,24 @@ function Details() {
                       {item.label}
                     </p>
                     <div className="mt-5 h-px w-16 bg-champagne/70" />
-                    <h3 className="mt-6 whitespace-normal font-serif text-[1.9rem] leading-tight text-charcoal sm:text-[2.15rem] md:whitespace-nowrap md:text-[2.6rem] md:leading-none">
+                    <h3 className="mt-6 max-w-[18rem] font-serif text-[1.9rem] leading-tight text-charcoal sm:max-w-[22rem] sm:text-[2.15rem] md:max-w-[26rem] md:text-[2.3rem] lg:max-w-none lg:text-[2.35rem] xl:whitespace-nowrap xl:text-[2.6rem] xl:leading-none">
                       {item.title}
                     </h3>
-                    <p className="mt-4 whitespace-normal text-[0.98rem] leading-relaxed text-taupe sm:text-base md:whitespace-nowrap md:text-[1.12rem] md:leading-normal">
-                      {item.sub}
-                    </p>
-                    <p className="mt-6 max-w-[18rem] whitespace-normal text-[0.56rem] uppercase leading-[1.7] tracking-[0.16em] text-muted-foreground sm:text-[0.6rem] sm:tracking-[0.2em] md:max-w-none md:whitespace-nowrap md:text-[0.62rem] md:leading-normal md:tracking-[0.24em]">
-                      {item.note}
-                    </p>
-                    <p className="mt-3 text-sm leading-relaxed text-taupe md:text-[0.98rem]">
-                      {item.extra}
-                    </p>
+                    {item.sub !== "" && (
+                      <p className="mt-4 text-[0.98rem] leading-relaxed text-taupe sm:text-base lg:whitespace-nowrap lg:text-[1.08rem] lg:leading-normal">
+                        {item.sub}
+                      </p>
+                    )}
+                    {item.note !== "" && (
+                      <p className="mt-6 max-w-[18rem] text-[0.56rem] uppercase leading-[1.7] tracking-[0.16em] text-muted-foreground sm:max-w-[21rem] sm:text-[0.6rem] sm:tracking-[0.2em] md:max-w-[24rem] lg:max-w-none lg:whitespace-nowrap lg:text-[0.62rem] lg:leading-normal lg:tracking-[0.24em]">
+                        {item.note}
+                      </p>
+                    )}
+                    {item.extra !== "" && (
+                      <p className="mt-3 text-sm leading-relaxed text-taupe md:text-[0.98rem]">
+                        {item.extra}
+                      </p>
+                    )}
                   </article>
                 ))}
               </div>
@@ -946,7 +957,6 @@ function Rsvp() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [confirmation, setConfirmation] = useState<"yes" | "no" | null>(null);
-  const [guestPass, setGuestPass] = useState<GuestPassInfo | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string>("");
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -1006,7 +1016,6 @@ function Rsvp() {
       const payload = (await response.json().catch(() => ({}))) as {
         message?: string;
         errors?: Partial<Record<keyof FormState | "firstName", string>>;
-        guestPass?: GuestPassInfo | null;
       };
 
       if (!response.ok) {
@@ -1026,11 +1035,10 @@ function Rsvp() {
       }
 
       setConfirmation(form.attending as "yes" | "no");
-      setGuestPass(payload.guestPass ?? null);
       setSubmitMessage(
         form.attending === "yes"
-          ? "Thank you for your confirmation! We’re so excited to celebrate with you."
-          : "Thank you for letting us know. We truly appreciate your response and hope to celebrate with you another time.",
+          ? "Thank you for your RSVP! We can’t wait to celebrate this special moment with you."
+          : "Thank you for letting us know. We’ll truly miss celebrating with you, but we’re grateful for your love and support. 🤍",
       );
     } catch (error) {
       setSubmitMessage(
@@ -1043,7 +1051,6 @@ function Rsvp() {
 
   const closeConfirm = () => {
     setConfirmation(null);
-    setGuestPass(null);
     setForm(initialForm);
     setErrors({});
   };
@@ -1065,10 +1072,13 @@ function Rsvp() {
               Kindly Respond
             </p>
             <h2 className="mt-4 font-serif text-3xl leading-tight text-charcoal md:text-4xl">
-              Will you join us?
+              Will you celebrate with us?
             </h2>
             <p className="mt-3 text-sm text-muted-foreground md:text-base">
-              A preliminary response helps us plan. The full invitation follows.
+              We would be delighted to have you join us on our wedding day.
+            </p>
+            <p className="mt-3 text-xs italic leading-relaxed text-muted-foreground md:text-sm">
+              Kindly let us know your attendance by 30 September 2026.
             </p>
           </div>
 
@@ -1131,7 +1141,7 @@ function Rsvp() {
                   checked={form.attending === "yes"}
                   onChange={() => update("attending", "yes")}
                   title="Yes, I'll be there!"
-                  subtitle="Save my place"
+                  subtitle="I can’t wait to celebrate with you."
                 />
                 <RadioCard
                   name="attending"
@@ -1143,7 +1153,7 @@ function Rsvp() {
                     update("events", []);
                   }}
                   title="Sorry, I can't attend"
-                  subtitle="Sending love from afar"
+                  subtitle="Wishing you both a beautiful celebration."
                 />
               </div>
               {errors.attending && (
@@ -1165,14 +1175,14 @@ function Rsvp() {
                       checked={form.guests === guestCount}
                       onChange={() => update("guests", guestCount)}
                       title={`${guestCount} Guest${guestCount === "2" ? "s" : ""}`}
-                      subtitle={guestCount === "1" ? "Just me" : "Me and one guest"}
+                      subtitle={guestCount === "1" ? "Only me" : "Me and one guest"}
                       compact
                     />
                   ))}
                 </div>
                 <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                  Children under 12 years old are not permitted. Teenagers are welcome, but they
-                  should complete a separate RSVP together with their parents.
+                  Teenagers are welcome and
+                  should submit a separate RSVP together with their parents.
                 </p>
                 {errors.guests && <p className="mt-2 text-xs text-destructive">{errors.guests}</p>}
               </fieldset>
@@ -1186,7 +1196,7 @@ function Rsvp() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {[
                     { value: "holy_matrimony", label: "Holy Matrimony" },
-                    { value: "syukuran", label: "Syukuran" },
+                    { value: "syukuran", label: "Lunch Celebration" },
                   ].map((eventOption) => (
                     <CheckboxCard
                       key={eventOption.value}
@@ -1202,6 +1212,12 @@ function Rsvp() {
                       title={eventOption.label}
                     />
                   ))}
+                </div>
+                <div className="mt-4 rounded-[10px] border border-champagne/20 bg-cream/30 px-4 py-4">
+                  <p className="text-[0.62rem] font-medium uppercase tracking-[0.24em] text-taupe">
+                    Dress Code
+                  </p>
+                  <p className="mt-2 font-serif text-lg text-charcoal">Formal Attire</p>
                 </div>
                 {errors.events && <p className="mt-2 text-xs text-destructive">{errors.events}</p>}
               </fieldset>
@@ -1227,7 +1243,7 @@ function Rsvp() {
         </div>
       </div>
 
-      {confirmation && <ConfirmModal type={confirmation} guestPass={guestPass} onClose={closeConfirm} />}
+      {confirmation && <ConfirmModal type={confirmation} onClose={closeConfirm} />}
     </section>
   );
 }
@@ -1362,15 +1378,7 @@ function CheckboxCard({
   );
 }
 
-function ConfirmModal({
-  type,
-  guestPass,
-  onClose,
-}: {
-  type: "yes" | "no";
-  guestPass: GuestPassInfo | null;
-  onClose: () => void;
-}) {
+function ConfirmModal({ type, onClose }: { type: "yes" | "no"; onClose: () => void }) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -1386,12 +1394,12 @@ function ConfirmModal({
     () =>
       type === "yes"
         ? {
-            title: "RSVP confirmed",
-            body: "Guest pass ready. Simpan QR untuk check-in.",
+            title: "Thank you for your RSVP!",
+            body: "We can’t wait to celebrate this special moment with you.",
           }
         : {
-            title: "Response saved",
-            body: "Terima kasih atas konfirmasinya.",
+            title: "Thank you for letting us know",
+            body: "We’ll truly miss celebrating with you, but we’re grateful for your love and support. 🤍",
           },
     [type],
   );
@@ -1401,51 +1409,32 @@ function ConfirmModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/60 px-4 py-8"
       onClick={onClose}
     >
       <div
         onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-sm rounded-[20px] border border-border bg-card p-5 text-center shadow-2xl sm:p-6"
+        className="w-full max-w-md rounded-[10px] border border-border bg-card p-8 text-center shadow-2xl md:p-10"
       >
-        <p className="text-[0.62rem] font-medium uppercase tracking-[0.34em] text-taupe">L & A</p>
-        <h3 id="confirm-title" className="mt-3 font-serif text-2xl leading-tight text-charcoal">
+        <div className="flex justify-center">
+          <Monogram />
+        </div>
+        <div className="mt-5 flex justify-center">
+          <Hairline />
+        </div>
+        <h3
+          id="confirm-title"
+          className="mt-6 font-serif text-2xl leading-tight text-charcoal md:text-3xl"
+        >
           {content.title}
         </h3>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{content.body}</p>
-        {type === "yes" && guestPass && (
-          <div className="mt-5 rounded-[18px] border border-[rgba(200,182,153,0.28)] bg-cream/40 p-4">
-            <img
-              src={guestPass.qrCodeDataUrl}
-              alt="Guest QR code"
-              className="mx-auto w-full max-w-[180px] rounded-[16px] border border-[rgba(200,182,153,0.24)] bg-white p-2.5"
-            />
-            <p className="mt-3 text-[0.68rem] uppercase tracking-[0.24em] text-taupe">
-              {guestPass.guestCode}
-            </p>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <a
-                href={guestPass.qrCodeDataUrl}
-                download={`${guestPass.guestCode}-qr.png`}
-                className="inline-flex items-center justify-center rounded-full border border-charcoal/15 bg-white px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-charcoal transition-colors hover:bg-cream"
-              >
-                Download QR
-              </a>
-              <a
-                href={guestPass.passUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center rounded-full bg-charcoal px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-charcoal/92"
-              >
-                Open Pass
-              </a>
-            </div>
-          </div>
-        )}
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
+          {content.body}
+        </p>
         <button
           type="button"
           onClick={onClose}
-          className="mt-5 inline-flex items-center rounded-full border border-charcoal/20 px-4 py-2 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
+          className="mt-8 inline-flex items-center gap-3 rounded-[6px] border border-charcoal px-6 py-3 text-[0.7rem] font-medium uppercase tracking-[0.3em] text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
         >
           Close
         </button>
@@ -1473,25 +1462,86 @@ function Closing() {
           data-reveal-delay="120"
           className="reveal mt-8 font-serif text-4xl leading-tight md:text-6xl"
         >
-          Luis <span className="font-light italic text-champagne">&amp;</span> Angel Mayjesty
+          Luis Meraz <span className="font-light italic text-champagne">&amp;</span> Angel Mayjesty
         </h2>
         <p
           data-reveal
           data-reveal-delay="220"
           className="reveal mt-6 text-[0.72rem] uppercase tracking-[0.4em] text-ivory/85"
         >
-          23 — 24 April 2027 · Jakarta, Indonesia
+          Friday, 23 April 2027 · Jakarta, Indonesia
         </p>
-        <p
-          data-reveal
-          data-reveal-delay="320"
-          className="reveal mt-8 font-serif text-xl italic text-ivory/90 md:text-2xl"
-        >
-          "We can't wait to celebrate with you."
-        </p>
+        <div data-reveal data-reveal-delay="320" className="reveal mt-8 space-y-4 text-center">
+          <p className="text-base leading-relaxed text-ivory/90 md:text-lg">
+            Thank you for your love, prayers, and support.
+          </p>
+          <p className="text-base leading-relaxed text-ivory/90 md:text-lg">
+            We look forward to celebrating this joyful day with you.
+          </p>
+          <div className="pt-2">
+            <p className="font-serif text-lg italic text-ivory/86 md:text-xl">With love,</p>
+            <p className="mt-2 font-serif text-2xl text-ivory md:text-3xl">Luis &amp; Angel</p>
+          </div>
+        </div>
+        <Countdown />
       </div>
     </section>
   );
+}
+
+function Countdown() {
+  const targetTime = useMemo(() => new Date("2027-04-23T00:00:00+07:00").getTime(), []);
+  const [timeLeft, setTimeLeft] = useState(() => getCountdownParts(targetTime));
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setTimeLeft(getCountdownParts(targetTime));
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [targetTime]);
+
+  const items = [
+    { label: "Days", value: timeLeft.days },
+    { label: "Hours", value: timeLeft.hours },
+    { label: "Minutes", value: timeLeft.minutes },
+    { label: "Seconds", value: timeLeft.seconds },
+  ];
+
+  return (
+    <div data-reveal data-reveal-delay="420" className="reveal mt-12">
+      <p className="text-[0.64rem] font-medium uppercase tracking-[0.34em] text-ivory/66">
+        Counting Down To 23 April 2027
+      </p>
+      <div className="mx-auto mt-5 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="rounded-[16px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-4 py-4 shadow-[0_18px_40px_-30px_rgba(14,10,8,0.45)] backdrop-blur-[2px]"
+          >
+            <div className="font-serif text-3xl leading-none text-ivory md:text-4xl">
+              {String(item.value).padStart(2, "0")}
+            </div>
+            <div className="mt-2 text-[0.62rem] font-medium uppercase tracking-[0.26em] text-ivory/62">
+              {item.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function getCountdownParts(targetTime: number) {
+  const now = Date.now();
+  const distance = Math.max(0, targetTime - now);
+
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((distance / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((distance / (1000 * 60)) % 60);
+  const seconds = Math.floor((distance / 1000) % 60);
+
+  return { days, hours, minutes, seconds };
 }
 
 function Footer() {

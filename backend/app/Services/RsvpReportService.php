@@ -219,7 +219,7 @@ class RsvpReportService
         foreach ($decoded as $event) {
             $mapped[] = match ((string) $event) {
                 'holy_matrimony' => 'Holy Matrimony',
-                'syukuran' => 'Syukuran',
+                'syukuran' => 'Lunch Celebration',
                 default => '',
             };
         }

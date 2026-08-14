@@ -87,7 +87,7 @@ export function GuestListPage({
             options={[
               { label: "All events", value: "all" },
               { label: "Holy Matrimony", value: "holy_matrimony" },
-              { label: "Syukuran", value: "syukuran" },
+              { label: "Lunch Celebration", value: "syukuran" },
             ]}
           />
           <button
@@ -160,7 +160,7 @@ export function GuestListPage({
                     </td>
                     <td className="border-t border-[rgba(200,182,153,0.16)] px-3 py-3 text-[12px] text-muted-foreground">
                       <div>M: {record.holyMatrimonyCheckedInLabel}</div>
-                      <div className="mt-1">S: {record.syukuranCheckedInLabel}</div>
+                      <div className="mt-1">L: {record.syukuranCheckedInLabel}</div>
                     </td>
                   </tr>
                 ))}

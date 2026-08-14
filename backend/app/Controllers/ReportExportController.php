@@ -165,7 +165,7 @@ class ReportExportController extends BaseController
         $options->set('isRemoteEnabled', false);
 
         $dompdf = new Dompdf($options);
-        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->setPaper('A4', 'portrait');
         $dompdf->loadHtml($html);
         $dompdf->render();
 
