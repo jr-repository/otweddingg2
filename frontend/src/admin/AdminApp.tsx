@@ -296,8 +296,8 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (token: string, user: AdminUse
         </form>
       </div>
 
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-5xl overflow-hidden rounded-[24px] border border-[rgba(200,182,153,0.34)] bg-white shadow-[0_28px_80px_-44px_rgba(63,47,37,0.24)] lg:grid-cols-[1fr_0.92fr]">
-        <div className="relative hidden overflow-hidden bg-[linear-gradient(135deg,rgba(33,27,24,0.96),rgba(96,70,48,0.82))] p-8 text-ivory lg:block">
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-5xl overflow-hidden rounded-[24px] border border-[rgba(200,182,153,0.34)] bg-white shadow-[0_28px_80px_-44px_rgba(63,47,37,0.24)] min-[1025px]:grid-cols-[1fr_0.92fr]">
+        <div className="relative hidden overflow-hidden bg-[linear-gradient(135deg,rgba(33,27,24,0.96),rgba(96,70,48,0.82))] p-8 text-ivory min-[1025px]:block">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(214,190,152,0.32),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_24%)]" />
           <div className="relative flex h-full flex-col justify-between">
             <div>
@@ -546,7 +546,7 @@ function AdminWorkspace({
     }
 
     const syncViewForDesktop = () => {
-      if (window.innerWidth > 450 && activeView === "more") {
+      if (window.innerWidth > 1024 && activeView === "more") {
         setActiveView("overview");
       }
     };
@@ -764,14 +764,14 @@ function AdminWorkspace({
 
   return (
     <div className="wa-admin-mobile-shell min-h-screen bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf9_100%)] text-charcoal max-[450px]:bg-transparent">
-      <div className="flex min-h-screen flex-col lg:flex-row max-[450px]:min-h-[100dvh]">
+      <div className="flex min-h-screen flex-col min-[1025px]:flex-row max-[450px]:min-h-[100dvh]">
         <aside
-          className={`flex w-full flex-col border-b border-[rgba(200,182,153,0.28)] bg-[linear-gradient(180deg,rgba(33,27,24,0.98),rgba(58,44,34,0.96))] px-4 py-4 text-ivory transition-all duration-300 max-[450px]:hidden lg:min-h-screen lg:border-b-0 lg:border-r ${
-            sidebarCompact ? "lg:w-[88px]" : "lg:w-[250px]"
+          className={`hidden w-full flex-col border-b border-[rgba(200,182,153,0.28)] bg-[linear-gradient(180deg,rgba(33,27,24,0.98),rgba(58,44,34,0.96))] px-4 py-4 text-ivory transition-all duration-300 min-[1025px]:flex min-[1025px]:min-h-screen min-[1025px]:border-b-0 min-[1025px]:border-r ${
+            sidebarCompact ? "min-[1025px]:w-[88px]" : "min-[1025px]:w-[250px]"
           }`}
         >
           <div className="flex items-center justify-between gap-3">
-            <div className={sidebarCompact ? "lg:hidden" : ""}>
+            <div className={sidebarCompact ? "min-[1025px]:hidden" : ""}>
               <p className="text-[0.62rem] font-medium uppercase tracking-[0.34em] text-ivory/66">
                 L &amp; A Admin
               </p>
@@ -792,7 +792,7 @@ function AdminWorkspace({
 
           <div
             className={`mt-5 rounded-[16px] border border-white/10 bg-white/6 px-4 py-3 text-[12px] text-ivory/78 ${
-              sidebarCompact ? "hidden lg:hidden" : ""
+              sidebarCompact ? "hidden min-[1025px]:hidden" : ""
             }`}
           >
             Signed in as <span className="font-medium text-ivory">{user.username}</span>
@@ -846,8 +846,82 @@ function AdminWorkspace({
           </div>
         </aside>
 
-        <main className="flex-1 px-3 py-4 sm:px-4 lg:px-5 lg:py-5 max-[450px]:px-0 max-[450px]:py-0">
-          <div className="mx-auto max-w-[1500px] max-[450px]:max-w-none max-[450px]:pb-[calc(96px+env(safe-area-inset-bottom))]">
+        <main className="flex-1 px-3 py-4 sm:px-4 min-[1025px]:px-5 min-[1025px]:py-5 min-[451px]:max-[1024px]:px-4 min-[451px]:max-[1024px]:py-4 max-[450px]:px-0 max-[450px]:py-0">
+          <div className="mx-auto max-w-[1500px] min-[451px]:max-[1024px]:max-w-[980px] max-[450px]:max-w-none max-[450px]:pb-[calc(96px+env(safe-area-inset-bottom))]">
+            <div className="hidden min-[451px]:max-[1024px]:block">
+              <div className="overflow-hidden rounded-[24px] border border-[rgba(200,182,153,0.24)] bg-white/90 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+                <div className="flex items-center justify-between gap-4 border-b border-[rgba(200,182,153,0.18)] px-5 py-4">
+                  <div>
+                    <p className="text-[0.58rem] font-medium uppercase tracking-[0.3em] text-taupe">
+                      L &amp; A Admin
+                    </p>
+                    <h1 className="mt-1 font-serif text-[1.8rem] leading-none text-charcoal">
+                      Wedding Dashboard
+                    </h1>
+                    <p className="mt-1 text-[12px] text-muted-foreground">
+                      Signed in as {user.username}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleExport("excel")}
+                      className="inline-flex h-10 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-cream/60 px-4 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-charcoal transition-colors hover:bg-cream"
+                    >
+                      {exporting === "excel" ? "Preparing Excel..." : "Export Excel"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleExport("pdf")}
+                      className="inline-flex h-10 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-cream/60 px-4 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-charcoal transition-colors hover:bg-cream"
+                    >
+                      {exporting === "pdf" ? "Preparing PDF..." : "Export PDF"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRefresh}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-white text-charcoal transition-colors hover:bg-cream"
+                      title="Refresh"
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="inline-flex h-10 items-center justify-center rounded-full bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-charcoal/92"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto px-4 py-3">
+                  <div className="flex min-w-max items-center gap-2">
+                    {navItems.map((item) => {
+                      const active = activeView === item.view;
+
+                      return (
+                        <button
+                          key={item.view}
+                          type="button"
+                          onClick={() => onViewChange(item.view)}
+                          className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-[0.68rem] font-medium uppercase tracking-[0.18em] transition-colors ${
+                            active
+                              ? "bg-charcoal text-ivory"
+                              : "border border-[rgba(200,182,153,0.24)] bg-white text-charcoal hover:bg-cream/60"
+                          }`}
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="hidden max-[450px]:block">
               <div className="wa-admin-mobile-topbar">
                 {activeView === "overview" ? (
