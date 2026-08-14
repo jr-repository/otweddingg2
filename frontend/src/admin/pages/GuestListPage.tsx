@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { RefreshCcw, Search } from "lucide-react";
 
 import { PaginationControls, SelectField, adminInputCls } from "@/admin/components/AdminUi";
@@ -34,10 +34,24 @@ export function GuestListPage({
   generatingGuestId: number | null;
 }) {
   const [page, setPage] = useState(1);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setPage(1);
   }, [records.length, search, attendingFilter, eventFilter]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const focusSearch = () => {
+      searchInputRef.current?.focus();
+    };
+
+    window.addEventListener("admin-mobile-focus-guest-search", focusSearch);
+    return () => window.removeEventListener("admin-mobile-focus-guest-search", focusSearch);
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -49,29 +63,24 @@ export function GuestListPage({
   const rowEnd = records.length === 0 ? 0 : Math.min(safePage * PAGE_SIZE, records.length);
 
   return (
-    <section className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] max-[450px]:rounded-[26px] max-[450px]:border-[rgba(200,182,153,0.2)] max-[450px]:bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,245,239,0.94))] max-[450px]:p-3.5 max-[450px]:shadow-[0_24px_48px_-34px_rgba(63,47,37,0.22)]">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <section className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)] max-[450px]:rounded-none max-[450px]:border-0 max-[450px]:bg-transparent max-[450px]:p-0 max-[450px]:shadow-none">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between max-[450px]:hidden">
         <div>
           <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-taupe">
             Guest Records
           </p>
           <h3 className="mt-2 font-serif text-2xl text-charcoal">RSVP Guest List</h3>
-          <p className="mt-2 hidden text-[12px] text-muted-foreground max-[450px]:block">
-            Cari tamu, cek status, lalu buka detail atau generate guest code langsung dari sini.
-          </p>
         </div>
 
-        <form
-          onSubmit={onSubmitFilters}
-          className="grid gap-2 sm:grid-cols-3 lg:w-[640px] max-[450px]:rounded-[22px] max-[450px]:border max-[450px]:border-[rgba(200,182,153,0.2)] max-[450px]:bg-[#fcfaf7] max-[450px]:p-3"
-        >
-          <label className="sm:col-span-3 max-[450px]:sm:col-span-1">
+        <form onSubmit={onSubmitFilters} className="grid gap-2 sm:grid-cols-3 lg:w-[640px]">
+          <label className="sm:col-span-3">
             <span className="mb-1.5 block text-[0.58rem] font-medium uppercase tracking-[0.22em] text-taupe">
               Search
             </span>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-taupe" />
               <input
+                ref={searchInputRef}
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
                 placeholder="Name, email, phone, guest code"
@@ -102,7 +111,7 @@ export function GuestListPage({
           />
           <button
             type="submit"
-            className="mt-[1.45rem] inline-flex h-10 items-center justify-center rounded-[12px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-charcoal/92 max-[450px]:mt-0 max-[450px]:h-11 max-[450px]:rounded-[16px]"
+            className="mt-[1.45rem] inline-flex h-10 items-center justify-center rounded-[12px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-charcoal/92"
           >
             Apply Filters
           </button>
@@ -218,115 +227,123 @@ export function GuestListPage({
         )}
       </div>
 
-      <div className="hidden max-[450px]:mt-4 max-[450px]:block">
-        <div className="mb-3 flex items-center justify-between rounded-[18px] border border-[rgba(200,182,153,0.18)] bg-[#fcfaf7] px-3.5 py-3 text-[12px] text-muted-foreground">
-          <span>
-            Showing {rowStart}-{rowEnd}
-          </span>
-          <span>{records.length} guests</span>
+      <div className="hidden max-[450px]:block">
+        <div className="rounded-[12px] border border-[rgba(238,229,219,1)] bg-white px-[10px]">
+          <div className="flex h-[38px] items-center gap-[7px]">
+            <Search className="h-[14px] w-[14px] text-[#9a8d83]" />
+            <input
+              ref={searchInputRef}
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Search guest or code..."
+              className="h-full w-full border-0 bg-transparent text-[8.5px] text-charcoal outline-none placeholder:text-[#aa9d93]"
+            />
+          </div>
         </div>
 
-        <div className="space-y-3">
+        <form onSubmit={onSubmitFilters} className="mt-[7px] grid grid-cols-2 gap-[6px]">
+          <select
+            value={attendingFilter}
+            onChange={(event) => onAttendingFilterChange(event.target.value)}
+            className="h-[33px] rounded-[10px] border border-[rgba(238,229,219,1)] bg-white px-[9px] text-[7.8px] text-[#52463e] outline-none"
+          >
+            <option value="all">All Attendance</option>
+            <option value="yes">Attending</option>
+            <option value="no">Unable to attend</option>
+          </select>
+
+          <select
+            value={eventFilter}
+            onChange={(event) => onEventFilterChange(event.target.value)}
+            className="h-[33px] rounded-[10px] border border-[rgba(238,229,219,1)] bg-white px-[9px] text-[7.8px] text-[#52463e] outline-none"
+          >
+            <option value="all">All Events</option>
+            <option value="holy_matrimony">Holy Matrimony</option>
+            <option value="syukuran">Lunch Celebration</option>
+          </select>
+        </form>
+
+        <div className="mb-[6px] mt-3 flex items-center justify-between px-0.5 text-[8px]">
+          <strong className="font-medium text-charcoal">{records.length} Guests</strong>
+          <span className="text-[#91857c]">Newest ↓</span>
+        </div>
+
+        <div className="overflow-hidden rounded-[13px] border border-[rgba(238,229,219,1)] bg-white">
           {loading && (
-            <div className="rounded-[20px] border border-[rgba(200,182,153,0.18)] bg-[#fcfaf7] px-4 py-8 text-center text-[12px] text-muted-foreground">
+            <div className="px-4 py-8 text-center text-[12px] text-muted-foreground">
               Loading guest list...
             </div>
           )}
 
           {!loading && paginatedRecords.length === 0 && (
-            <div className="rounded-[20px] border border-[rgba(200,182,153,0.18)] bg-[#fcfaf7] px-4 py-8 text-center text-[12px] text-muted-foreground">
+            <div className="px-4 py-8 text-center text-[12px] text-muted-foreground">
               No guests found for this view.
             </div>
           )}
 
           {!loading &&
             paginatedRecords.map((record, index) => (
-              <article
+              <button
                 key={record.id}
-                className="rounded-[22px] border border-[rgba(200,182,153,0.2)] bg-[#fcfaf7] p-4 shadow-[0_18px_36px_-28px_rgba(63,47,37,0.18)]"
+                type="button"
+                onClick={() => onSelectGuest(record)}
+                className={`grid w-full grid-cols-[31px_minmax(0,1fr)_auto_12px] items-center gap-2 px-[9px] py-[9px] text-left ${
+                  index > 0 ? "border-t border-[rgba(238,229,219,1)]" : ""
+                }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <button type="button" onClick={() => onSelectGuest(record)} className="text-left">
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-taupe">
-                      Guest {rowStart + index}
-                    </p>
-                    <h4 className="mt-2 text-[16px] font-medium leading-snug text-charcoal">
-                      {record.fullName}
-                    </h4>
-                    <p className="mt-1 text-[12px] text-muted-foreground">
-                      Submitted {record.submittedAtLabel}
-                    </p>
-                  </button>
+                <div className="grid h-[31px] w-[31px] place-items-center rounded-full bg-[#f4eee6] font-serif text-[10px] text-[#705b43]">
+                  {record.fullName
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((part) => part[0]?.toUpperCase() ?? "")
+                    .join("")}
+                </div>
 
-                  <span className="rounded-full bg-cream px-3 py-1 text-[0.58rem] uppercase tracking-[0.2em] text-charcoal">
+                <div className="min-w-0">
+                  <div className="mb-[2px] text-[8.8px] font-semibold text-charcoal">
+                    {record.fullName}
+                  </div>
+                  <div className="text-[6.9px] font-semibold leading-[1.4] text-[#608056]">
                     {record.attendingLabel}
-                  </span>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-3 text-[12px] text-muted-foreground">
-                  <div>
-                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">
-                      Guest Code
-                    </p>
-                    <p className="mt-1 break-all text-charcoal">
-                      {record.guestCode || "Not generated yet"}
-                    </p>
                   </div>
-                  <div>
-                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">Seats</p>
-                    <p className="mt-1 text-charcoal">{record.guestsLabel}</p>
+                  <div className="truncate text-[6.9px] leading-[1.4] text-[#8e8178]">
+                    {record.eventsLabel}
                   </div>
-                  <div className="col-span-2">
-                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">Contact</p>
-                    <p className="mt-1 break-all text-charcoal">{record.email || "-"}</p>
-                    <p className="mt-1 text-charcoal">{record.phone || "-"}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">Events</p>
-                    <p className="mt-1 text-charcoal">{record.eventsLabel}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-[0.56rem] uppercase tracking-[0.22em] text-taupe">
-                      Check-In
-                    </p>
-                    <p className="mt-1 text-charcoal">M: {record.holyMatrimonyCheckedInLabel}</p>
-                    <p className="mt-1 text-charcoal">L: {record.syukuranCheckedInLabel}</p>
+                  <div className="truncate text-[6.9px] leading-[1.4] text-[#8e8178]">
+                    {record.email || record.phone || record.guestCode || "-"}
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onSelectGuest(record)}
-                    className="inline-flex h-11 items-center justify-center rounded-[16px] border border-[rgba(200,182,153,0.24)] bg-white px-4 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-charcoal"
-                  >
-                    View Detail
-                  </button>
+                <span className="rounded-full bg-[#edf4e9] px-[6px] py-1 text-[6.8px] text-[#627d5a]">
+                  {record.guestCode ? "Ready" : "Pending"}
+                </span>
+                <span className="text-[14px] text-[#a69990]">›</span>
 
-                  {record.guestCode ? (
-                    <div className="inline-flex h-11 items-center justify-center rounded-[16px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ivory">
-                      Code Ready
-                    </div>
-                  ) : (
+                {!record.guestCode && (
+                  <span className="col-span-4 mt-1 flex justify-end">
                     <button
                       type="button"
-                      onClick={() => onGenerateGuestCode(record)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onGenerateGuestCode(record);
+                      }}
                       disabled={generatingGuestId === record.id}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-[16px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.18em] text-ivory disabled:cursor-not-allowed disabled:opacity-45"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(200,182,153,0.3)] bg-[#f8f2ea] px-2.5 py-1.5 text-[6.8px] font-semibold uppercase tracking-[0.14em] text-charcoal disabled:opacity-45"
                     >
                       {generatingGuestId === record.id ? (
-                        <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                        <RefreshCcw className="h-3 w-3 animate-spin" />
                       ) : null}
                       {generatingGuestId === record.id ? "Generating..." : "Generate Code"}
                     </button>
-                  )}
-                </div>
-              </article>
+                  </span>
+                )}
+              </button>
             ))}
         </div>
 
         {!loading && records.length > 0 && (
-          <div className="mt-3 overflow-hidden rounded-[18px] border border-[rgba(200,182,153,0.18)] bg-[#fcfaf7]">
+          <div className="mt-3 overflow-hidden rounded-[13px] border border-[rgba(238,229,219,1)] bg-white">
             <PaginationControls
               page={safePage}
               totalPages={totalPages}

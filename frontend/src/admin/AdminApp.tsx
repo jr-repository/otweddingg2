@@ -9,11 +9,24 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { Images, LayoutDashboard, LogOut, Menu, RefreshCcw, ScanLine, Users } from "lucide-react";
+import {
+  Bell,
+  CircleHelp,
+  Images,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MoreHorizontal,
+  RefreshCcw,
+  ScanLine,
+  Search,
+  Users,
+} from "lucide-react";
 
 import { AuthField, SidebarAction, SidebarButton, adminInputCls } from "@/admin/components/AdminUi";
 import { GuestDetailModal } from "@/admin/components/GuestDetailModal";
 import { GuestListPage } from "@/admin/pages/GuestListPage";
+import { MorePage } from "@/admin/pages/MorePage";
 import { OverviewPage } from "@/admin/pages/OverviewPage";
 import { PhotoboothPage } from "@/admin/pages/PhotoboothPage";
 import type {
@@ -337,6 +350,7 @@ function AdminWorkspace({
   const [exporting, setExporting] = useState<"" | "excel" | "pdf">("");
   const [generatingGuestId, setGeneratingGuestId] = useState<number | null>(null);
   const [sidebarCompact, setSidebarCompact] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const navItems: Array<{
     view: AdminView;
     label: string;
@@ -367,7 +381,14 @@ function AdminWorkspace({
       shortLabel: "Booth",
       icon: <Images className="h-4 w-4" />,
     },
+    {
+      view: "more",
+      label: "More",
+      shortLabel: "More",
+      icon: <MoreHorizontal className="h-4 w-4" />,
+    },
   ];
+  const desktopNavItems = navItems.filter((item) => item.view !== "more");
 
   const loadDashboard = useCallback(
     async (filters?: { search?: string; attending?: string; event?: string }) => {
@@ -459,6 +480,26 @@ function AdminWorkspace({
     });
   }, [activeView, loadPhotobooth, photoboothEventFilter, photoboothSearch]);
 
+  useEffect(() => {
+    setMobileDrawerOpen(false);
+  }, [activeView]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const syncViewForDesktop = () => {
+      if (window.innerWidth > 450 && activeView === "more") {
+        setActiveView("overview");
+      }
+    };
+
+    syncViewForDesktop();
+    window.addEventListener("resize", syncViewForDesktop);
+    return () => window.removeEventListener("resize", syncViewForDesktop);
+  }, [activeView]);
+
   const filteredRecords = useMemo(() => {
     if (!dashboard) return [];
     return Array.isArray(dashboard.records) ? dashboard.records : [];
@@ -489,6 +530,14 @@ function AdminWorkspace({
         title: "Saved guest captures",
         description:
           "Review every final photobooth result that has already been saved by the scanner flow.",
+      };
+    }
+
+    if (activeView === "more") {
+      return {
+        badge: "Admin Actions",
+        title: "More",
+        description: "Quick exports, account shortcuts, and session controls for mobile admin use.",
       };
     }
 
@@ -628,6 +677,35 @@ function AdminWorkspace({
     [generatingGuestId, handleRecordUpdated, token],
   );
 
+  const mobilePageTitle =
+    activeView === "overview"
+      ? ""
+      : activeView === "guests"
+        ? "Guest List"
+        : activeView === "scanner"
+          ? "Venue Scanner"
+          : activeView === "photobooth"
+            ? "Photobooth"
+            : "More";
+
+  const handleMobileHeaderAction = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (activeView === "guests") {
+      window.dispatchEvent(new CustomEvent("admin-mobile-focus-guest-search"));
+      return;
+    }
+
+    if (activeView === "scanner") {
+      window.dispatchEvent(new CustomEvent("admin-mobile-scanner-help"));
+      return;
+    }
+
+    handleRefresh();
+  };
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf9_100%)] text-charcoal max-[450px]:bg-[linear-gradient(180deg,#f4ede4_0%,#fbf7f2_28%,#f7f1e8_100%)]">
       <div className="flex min-h-screen flex-col lg:flex-row max-[450px]:min-h-[100dvh]">
@@ -665,7 +743,7 @@ function AdminWorkspace({
           </div>
 
           <nav className="mt-5 space-y-1.5">
-            {navItems.map((item) => (
+            {desktopNavItems.map((item) => (
               <SidebarButton
                 key={item.view}
                 active={activeView === item.view}
@@ -715,56 +793,77 @@ function AdminWorkspace({
         <main className="flex-1 px-3 py-4 sm:px-4 lg:px-5 lg:py-5 max-[450px]:px-0 max-[450px]:py-0">
           <div className="mx-auto max-w-[1500px] max-[450px]:max-w-none max-[450px]:pb-[calc(96px+env(safe-area-inset-bottom))]">
             <div className="hidden max-[450px]:block">
-              <div className="sticky top-0 z-30 border-b border-[rgba(200,182,153,0.18)] bg-[rgba(247,241,232,0.92)] px-4 pb-4 pt-[calc(14px+env(safe-area-inset-top))] backdrop-blur-xl">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[0.58rem] font-medium uppercase tracking-[0.32em] text-taupe">
-                      L &amp; A Admin
-                    </p>
-                    <h2 className="mt-2 font-serif text-[1.9rem] leading-none text-charcoal">
-                      {pageMeta.title}
-                    </h2>
-                    <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
-                      {pageMeta.description}
-                    </p>
-                  </div>
+              <div className="sticky top-0 z-30 border-b border-[rgba(232,222,211,0.85)] bg-[rgba(253,250,246,0.94)] px-[15px] pb-2 pt-[calc(8px+env(safe-area-inset-top))] backdrop-blur-xl">
+                {activeView === "overview" ? (
+                  <div className="flex h-[52px] items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setMobileDrawerOpen(true)}
+                        className="grid h-8 w-8 place-items-center rounded-[10px] text-charcoal"
+                        title="Open menu"
+                      >
+                        <Menu className="h-[18px] w-[18px]" />
+                      </button>
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-charcoal">
+                          L &amp; A Admin
+                        </p>
+                        <p className="mt-[3px] text-[8px] text-[#9a8f86]">Wedding Operations</p>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={handleRefresh}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-white/84 text-charcoal shadow-[0_16px_32px_-22px_rgba(63,47,37,0.22)]"
-                      title="Refresh"
+                      className="relative grid h-8 w-8 place-items-center rounded-[10px] text-charcoal"
+                      title="Refresh dashboard"
                     >
-                      <RefreshCcw className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={onLogout}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(200,182,153,0.28)] bg-charcoal text-ivory shadow-[0_16px_32px_-22px_rgba(63,47,37,0.32)]"
-                      title="Logout"
-                    >
-                      <LogOut className="h-4 w-4" />
+                      <Bell className="h-[18px] w-[18px]" />
+                      <span className="absolute right-[3px] top-[3px] h-1.5 w-1.5 rounded-full border border-white bg-[#de6c4f]" />
                     </button>
                   </div>
-                </div>
+                ) : (
+                  <div className="grid h-[52px] grid-cols-[32px_minmax(0,1fr)_32px] items-center">
+                    <button
+                      type="button"
+                      onClick={() => setMobileDrawerOpen(true)}
+                      className="grid h-8 w-8 place-items-center rounded-[10px] text-charcoal"
+                      title="Open menu"
+                    >
+                      <Menu className="h-[18px] w-[18px]" />
+                    </button>
 
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void handleExport("excel")}
-                    className="inline-flex h-11 items-center justify-center rounded-[16px] border border-[rgba(200,182,153,0.28)] bg-white/86 px-4 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-charcoal shadow-[0_14px_26px_-20px_rgba(63,47,37,0.18)]"
-                  >
-                    {exporting === "excel" ? "Preparing..." : "Export Excel"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleExport("pdf")}
-                    className="inline-flex h-11 items-center justify-center rounded-[16px] bg-charcoal px-4 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ivory shadow-[0_14px_26px_-20px_rgba(63,47,37,0.24)]"
-                  >
-                    {exporting === "pdf" ? "Preparing..." : "Export PDF"}
-                  </button>
-                </div>
+                    <h2 className="text-center font-serif text-[16px] leading-none text-charcoal">
+                      {mobilePageTitle}
+                    </h2>
+
+                    {activeView === "more" ? (
+                      <span className="block h-8 w-8" />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleMobileHeaderAction}
+                        className="grid h-8 w-8 place-items-center rounded-[10px] text-charcoal"
+                        title={
+                          activeView === "guests"
+                            ? "Focus search"
+                            : activeView === "scanner"
+                              ? "Scanner help"
+                              : "Refresh"
+                        }
+                      >
+                        {activeView === "guests" ? (
+                          <Search className="h-[18px] w-[18px]" />
+                        ) : activeView === "scanner" ? (
+                          <CircleHelp className="h-[18px] w-[18px]" />
+                        ) : (
+                          <Bell className="h-[18px] w-[18px]" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -814,6 +913,8 @@ function AdminWorkspace({
                     records={filteredRecords}
                     summary={dashboard?.summary ?? null}
                     onSelectGuest={setSelectedGuest}
+                    onOpenGuests={() => onViewChange("guests")}
+                    onOpenScanner={() => onViewChange("scanner")}
                   />
                 )}
 
@@ -861,6 +962,15 @@ function AdminWorkspace({
                     onSubmitFilters={handleFilterSubmit}
                   />
                 )}
+
+                {activeView === "more" && (
+                  <MorePage
+                    user={user}
+                    exporting={exporting}
+                    onExport={(kind) => void handleExport(kind)}
+                    onLogout={onLogout}
+                  />
+                )}
               </AdminViewErrorBoundary>
             </div>
           </div>
@@ -871,8 +981,49 @@ function AdminWorkspace({
         <GuestDetailModal record={selectedGuest} onClose={() => setSelectedGuest(null)} />
       )}
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 hidden border-t border-[rgba(200,182,153,0.18)] bg-[rgba(255,251,247,0.92)] px-3 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl max-[450px]:block">
-        <div className="grid grid-cols-4 gap-2 rounded-[22px] bg-white/72 p-2 shadow-[0_22px_40px_-30px_rgba(63,47,37,0.3)]">
+      <div
+        className={`fixed inset-0 z-[80] hidden bg-[rgba(20,16,14,0.3)] transition-opacity duration-200 max-[450px]:block ${
+          mobileDrawerOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setMobileDrawerOpen(false)}
+      >
+        <aside
+          className={`absolute bottom-0 left-0 top-0 w-[78%] max-w-[300px] bg-[#2d231e] px-3.5 pb-4 pt-[calc(18px+env(safe-area-inset-top))] text-white transition-transform duration-200 ${
+            mobileDrawerOpen ? "translate-x-0" : "-translate-x-[102%]"
+          }`}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-white">
+              L &amp; A Admin
+            </p>
+            <p className="mt-[3px] text-[8px] text-[#baaea6]">Wedding Operations</p>
+          </div>
+
+          <h2 className="mt-3 font-serif text-[18px] leading-none">Dashboard</h2>
+          <p className="mt-1 text-[7.5px] text-[#baaea6]">Signed in as {user.username}</p>
+
+          <div className="mt-4 space-y-1.5">
+            {navItems.map((item) => (
+              <button
+                key={item.view}
+                type="button"
+                onClick={() => onViewChange(item.view)}
+                className={`w-full rounded-[10px] px-2.5 py-2.5 text-left text-[8.5px] ${
+                  activeView === item.view
+                    ? "bg-white/10 text-white"
+                    : "text-[#ded5cf] hover:bg-white/8"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </aside>
+      </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 hidden border-t border-[rgba(238,229,219,1)] bg-[rgba(255,253,249,0.96)] px-1 pb-[max(6px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl max-[450px]:block">
+        <div className="grid grid-cols-5">
           {navItems.map((item) => {
             const active = activeView === item.view;
 
@@ -881,15 +1032,13 @@ function AdminWorkspace({
                 key={item.view}
                 type="button"
                 onClick={() => onViewChange(item.view)}
-                className={`flex min-h-[60px] flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 text-center transition-colors ${
-                  active
-                    ? "bg-charcoal text-ivory shadow-[0_14px_28px_-18px_rgba(36,29,25,0.56)]"
-                    : "text-taupe"
+                className={`flex min-h-[52px] flex-col items-center justify-center gap-0.5 px-1 py-1 text-center transition-colors ${
+                  active ? "font-semibold text-[#2e241e]" : "text-[#887c73]"
                 }`}
               >
                 {item.icon}
-                <span className="text-[0.58rem] font-medium uppercase tracking-[0.18em]">
-                  {item.shortLabel}
+                <span className="text-[6.6px]">
+                  {item.view === "overview" ? "Dashboard" : item.label}
                 </span>
               </button>
             );

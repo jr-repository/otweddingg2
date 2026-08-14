@@ -69,5 +69,5 @@ export type ScanFeedback = {
   body: string;
 };
 
-export type AdminView = "overview" | "guests" | "scanner" | "photobooth";
+export type AdminView = "overview" | "guests" | "scanner" | "photobooth" | "more";
 export type EventKey = "holy_matrimony" | "syukuran";

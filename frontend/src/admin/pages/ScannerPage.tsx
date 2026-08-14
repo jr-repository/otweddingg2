@@ -370,6 +370,26 @@ export function ScannerPage({
     return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const showHelp = () => {
+      setFeedback({
+        kind: "loading",
+        title: "Scanner tips",
+        body: "Center the QR code inside the frame and keep lighting stable for the fastest scan.",
+      });
+      window.setTimeout(() => {
+        setFeedback((current) => (current?.title === "Scanner tips" ? null : current));
+      }, 1600);
+    };
+
+    window.addEventListener("admin-mobile-scanner-help", showHelp);
+    return () => window.removeEventListener("admin-mobile-scanner-help", showHelp);
+  }, []);
+
   const openFullscreen = async () => {
     if (typeof document === "undefined") {
       return;
@@ -406,7 +426,7 @@ export function ScannerPage({
       id="scanner-fullscreen-shell"
       className="rounded-[20px] border border-[rgba(200,182,153,0.3)] bg-[linear-gradient(180deg,#171311_0%,#251d18_100%)] p-3 text-ivory shadow-[0_20px_50px_-36px_rgba(63,47,37,0.2)] sm:p-4 max-[450px]:rounded-[26px] max-[450px]:border-[rgba(200,182,153,0.18)] max-[450px]:p-3.5"
     >
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between max-[450px]:hidden">
         <div>
           <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-ivory/62">
             Venue Check-In
@@ -425,7 +445,7 @@ export function ScannerPage({
         </button>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[3fr_1fr]">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[3fr_1fr] max-[450px]:mt-0">
         <div className="rounded-[18px] border border-white/10 bg-white/5 p-3 max-[450px]:rounded-[22px] max-[450px]:bg-white/6">
           <div className="flex flex-wrap gap-2.5">
             <EventToggle
@@ -456,7 +476,7 @@ export function ScannerPage({
             </div>
           </div>
 
-          <div className="mt-3 flex items-start gap-2 rounded-[14px] border border-white/10 bg-white/6 px-3 py-3 text-[12px] text-ivory/82">
+          <div className="mt-3 flex items-start gap-2 rounded-[14px] border border-white/10 bg-white/6 px-3 py-3 text-[12px] text-ivory/82 max-[450px]:hidden">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 text-champagne" />
             <p>
               Each QR is accepted once per selected event. After check-in succeeds, a photobooth
