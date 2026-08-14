@@ -3,7 +3,7 @@ import { CalendarDays, ScanLine, ShieldCheck } from "lucide-react";
 
 import { MetricCard, PaginationControls } from "@/admin/components/AdminUi";
 import type { AdminRecord, AdminSummary } from "@/admin/types";
-import heroPhoto from "@/assets/photos/gallery-photo-06.jpeg";
+import heroPhoto from "../../../image copy.png";
 
 const PAGE_SIZE = 6;
 
