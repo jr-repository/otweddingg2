@@ -6,16 +6,17 @@ import "./styles.css";
 
 class RootErrorBoundary extends Component<
   { children: ReactNode },
-  { error: Error | null }
+  { error: Error | null; componentStack: string }
 > {
-  state = { error: null as Error | null };
+  state = { error: null as Error | null, componentStack: "" };
 
   static getDerivedStateFromError(error: Error) {
     return { error };
   }
 
-  componentDidCatch(error: Error) {
+  componentDidCatch(error: Error, info: { componentStack: string }) {
     console.error(error);
+    this.setState({ componentStack: info.componentStack || "" });
   }
 
   render() {
@@ -43,7 +44,14 @@ class RootErrorBoundary extends Component<
               boxShadow: "0 24px 60px -34px rgba(63,47,37,0.24)",
             }}
           >
-            <div style={{ fontSize: "12px", letterSpacing: "0.28em", textTransform: "uppercase", color: "#8a7768" }}>
+            <div
+              style={{
+                fontSize: "12px",
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: "#8a7768",
+              }}
+            >
               Frontend Runtime Error
             </div>
             <h1 style={{ margin: "14px 0 0", fontSize: "28px", lineHeight: 1.2 }}>
@@ -65,7 +73,7 @@ class RootErrorBoundary extends Component<
                 color: "#3a2e27",
               }}
             >
-              {this.state.error.stack || "No stack available."}
+              {this.state.error.stack || this.state.componentStack || "No stack available."}
             </pre>
           </div>
         </div>

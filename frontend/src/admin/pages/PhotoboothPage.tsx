@@ -1,0 +1,162 @@
+import type { FormEvent } from "react";
+import { Download, ExternalLink, Images, Search } from "lucide-react";
+
+import { SelectField, adminInputCls } from "@/admin/components/AdminUi";
+import type { PhotoboothRecord } from "@/admin/types";
+
+export function PhotoboothPage({
+  loading,
+  records,
+  search,
+  eventFilter,
+  onSearchChange,
+  onEventFilterChange,
+  onSubmitFilters,
+}: {
+  loading: boolean;
+  records: PhotoboothRecord[];
+  search: string;
+  eventFilter: string;
+  onSearchChange: (value: string) => void;
+  onEventFilterChange: (value: string) => void;
+  onSubmitFilters: (event: FormEvent) => void;
+}) {
+  return (
+    <section className="space-y-4">
+      <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 p-4 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[0.58rem] font-medium uppercase tracking-[0.28em] text-taupe">
+              Photobooth Results
+            </p>
+            <h3 className="mt-2 font-serif text-2xl text-charcoal">Saved Guest Captures</h3>
+            <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+              Semua hasil final photobooth yang sudah tersimpan akan tampil di sini.
+            </p>
+          </div>
+
+          <form onSubmit={onSubmitFilters} className="grid gap-2 sm:grid-cols-3 lg:w-[640px]">
+            <label className="sm:col-span-2">
+              <span className="mb-1.5 block text-[0.58rem] font-medium uppercase tracking-[0.22em] text-taupe">
+                Search
+              </span>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-taupe" />
+                <input
+                  value={search}
+                  onChange={(event) => onSearchChange(event.target.value)}
+                  placeholder="Guest name or guest code"
+                  className={`${adminInputCls()} pl-10`}
+                />
+              </div>
+            </label>
+
+            <SelectField
+              label="Event"
+              value={eventFilter}
+              onChange={onEventFilterChange}
+              options={[
+                { label: "All events", value: "all" },
+                { label: "Holy Matrimony", value: "holy_matrimony" },
+                { label: "Lunch Celebration", value: "syukuran" },
+              ]}
+            />
+          </form>
+        </div>
+      </div>
+
+      {loading && (
+        <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-8 text-center text-[12px] text-muted-foreground shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+          Loading photobooth results...
+        </div>
+      )}
+
+      {!loading && records.length === 0 && (
+        <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-10 text-center shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+          <Images className="mx-auto h-8 w-8 text-taupe/70" />
+          <p className="mt-3 text-[12px] uppercase tracking-[0.24em] text-taupe">
+            No photobooth results yet
+          </p>
+        </div>
+      )}
+
+      {!loading && records.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {records.map((record) => (
+            <article
+              key={record.id}
+              className="overflow-hidden rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]"
+            >
+              <div className="aspect-[4/5] overflow-hidden bg-cream/50">
+                {record.finalImageUrl ? (
+                  <img
+                    src={record.finalImageUrl}
+                    alt={`Photobooth result for ${record.guestName}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-[12px] text-muted-foreground">
+                    Preview unavailable
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3 px-4 py-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[12px] font-medium text-charcoal">{record.guestName}</p>
+                    <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-taupe">
+                      {record.guestCode}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-cream px-3 py-1 text-[0.58rem] uppercase tracking-[0.22em] text-charcoal">
+                    {record.eventLabel}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                  <div>
+                    <p className="uppercase tracking-[0.18em] text-taupe">Captured</p>
+                    <p className="mt-1">{record.capturedAtLabel}</p>
+                  </div>
+                  <div>
+                    <p className="uppercase tracking-[0.18em] text-taupe">Layout</p>
+                    <p className="mt-1">{record.layoutMode}</p>
+                  </div>
+                  <div>
+                    <p className="uppercase tracking-[0.18em] text-taupe">Shots</p>
+                    <p className="mt-1">{record.shotCount}</p>
+                  </div>
+                  <div>
+                    <p className="uppercase tracking-[0.18em] text-taupe">Saved By</p>
+                    <p className="mt-1">{record.createdBy || "-"}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <a
+                    href={record.finalImageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[rgba(200,182,153,0.34)] bg-cream/50 px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-charcoal transition-colors hover:bg-cream"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Open
+                  </a>
+                  <a
+                    href={record.finalImageUrl}
+                    download={`photobooth-${record.guestCode}.jpg`}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-charcoal px-4 py-2.5 text-[0.62rem] font-medium uppercase tracking-[0.22em] text-ivory transition-colors hover:bg-charcoal/92"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Download
+                  </a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}

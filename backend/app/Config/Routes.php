@@ -26,8 +26,13 @@ $routes->group('api', static function ($routes): void {
     $routes->get('admin/guests', 'Api\AdminGuestController::index');
     $routes->options('admin/guests/(:num)', 'Api\AdminGuestController::options');
     $routes->get('admin/guests/(:num)', 'Api\AdminGuestController::show/$1');
+    $routes->options('admin/guests/(:num)/generate-pass', 'Api\AdminGuestController::options');
+    $routes->post('admin/guests/(:num)/generate-pass', 'Api\AdminGuestController::generateGuestPass/$1');
     $routes->options('admin/check-in/manual', 'Api\AdminGuestController::options');
     $routes->post('admin/check-in/manual', 'Api\AdminGuestController::manualCheckIn');
     $routes->options('admin/check-in/scan', 'Api\AdminGuestController::options');
     $routes->post('admin/check-in/scan', 'Api\AdminGuestController::scanCheckIn');
+    $routes->options('admin/photobooth/captures', 'Api\AdminPhotoboothController::options');
+    $routes->get('admin/photobooth/captures', 'Api\AdminPhotoboothController::index');
+    $routes->post('admin/photobooth/captures', 'Api\AdminPhotoboothController::store');
 });

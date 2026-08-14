@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 
 use App\Models\RsvpSubmissionModel;
 use App\Services\GuestPassService;
+use App\Services\RsvpMailService;
 use App\Services\RsvpReportService;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\I18n\Time;
@@ -76,6 +77,106 @@ class AdminGuestController extends ApiController
         return $this->withCors($this->response->setJSON($record));
     }
 
+    public function generateGuestPass(int $id): ResponseInterface
+    {
+        $admin = $this->authenticateAdmin();
+        if ($admin instanceof ResponseInterface) {
+            return $admin;
+        }
+
+        if ($id < 1) {
+            return $this->withCors(
+                $this->response
+                    ->setStatusCode(422)
+                    ->setJSON([
+                        'message' => 'Invalid guest record.',
+                    ]),
+            );
+        }
+
+        $model = new RsvpSubmissionModel();
+        $record = $model->find($id);
+
+        if (! is_array($record)) {
+            return $this->withCors(
+                $this->response
+                    ->setStatusCode(404)
+                    ->setJSON([
+                        'message' => 'Guest record not found.',
+                    ]),
+            );
+        }
+
+        if (trim((string) ($record['guest_code'] ?? '')) !== '') {
+            return $this->withCors(
+                $this->response
+                    ->setStatusCode(409)
+                    ->setJSON([
+                        'message' => 'This guest already has a guest code.',
+                        'record' => (new RsvpReportService())->getAdminRecordById($id),
+                ]),
+            );
+        }
+
+        $db = $model->db;
+        $db->transBegin();
+
+        try {
+            $identifiers = (new GuestPassService())->ensureIdentifiers($record);
+            $model->update($id, $identifiers);
+
+            $savedRecord = $model->find($id);
+            if (! is_array($savedRecord)) {
+                $db->transRollback();
+                return $this->withCors(
+                    $this->response
+                        ->setStatusCode(500)
+                        ->setJSON([
+                            'message' => 'Guest code was generated, but the updated guest record could not be loaded.',
+                        ]),
+                );
+            }
+
+            $mailResult = (new RsvpMailService())->sendInvitationEmail($savedRecord, false);
+            if (! $mailResult['sent']) {
+                $db->transRollback();
+                return $this->withCors(
+                    $this->response
+                        ->setStatusCode(422)
+                        ->setJSON([
+                            'message' => $mailResult['error'] !== null && trim($mailResult['error']) !== ''
+                                ? 'Guest code was not saved because the invitation email failed: ' . $mailResult['error']
+                                : 'Guest code was not saved because the invitation email failed.',
+                        ]),
+                );
+            }
+
+            $db->transCommit();
+
+            return $this->withCors(
+                $this->response->setJSON([
+                    'message' => 'Guest code generated and invitation email sent successfully.',
+                    'emailSent' => true,
+                    'record' => (new RsvpReportService())->getAdminRecordById($id),
+                ]),
+            );
+        } catch (\Throwable $exception) {
+            if ($db->transStatus() !== false) {
+                $db->transRollback();
+            }
+
+            return $this->withCors(
+                $this->response
+                    ->setStatusCode(500)
+                    ->setJSON([
+                        'message' => $exception->getMessage() !== ''
+                            ? 'Guest code generation failed: ' . $exception->getMessage()
+                            : 'Guest code generation failed.',
+                    ]),
+            );
+        }
+    }
+
     public function manualCheckIn(): ResponseInterface
     {
         $admin = $this->authenticateAdmin();
@@ -90,8 +191,15 @@ class AdminGuestController extends ApiController
 
         $id = (int) ($payload['id'] ?? 0);
         $eventKey = trim((string) ($payload['eventKey'] ?? ''));
+        $previewOnly = filter_var($payload['previewOnly'] ?? false, FILTER_VALIDATE_BOOL);
 
-        return $this->handleCheckInByRecordId($id, $eventKey, (string) ($admin['sub'] ?? 'admin'), 'manual');
+        return $this->handleCheckInByRecordId(
+            $id,
+            $eventKey,
+            (string) ($admin['sub'] ?? 'admin'),
+            'manual',
+            $previewOnly,
+        );
     }
 
     public function scanCheckIn(): ResponseInterface
@@ -108,6 +216,7 @@ class AdminGuestController extends ApiController
 
         $eventKey = trim((string) ($payload['eventKey'] ?? ''));
         $scannedValue = trim((string) ($payload['scannedValue'] ?? ''));
+        $previewOnly = filter_var($payload['previewOnly'] ?? false, FILTER_VALIDATE_BOOL);
         $token = $this->extractTokenFromScan($scannedValue);
 
         if ($eventKey === '' || $token === '') {
@@ -137,10 +246,17 @@ class AdminGuestController extends ApiController
             $eventKey,
             (string) ($admin['sub'] ?? 'admin'),
             'qr',
+            $previewOnly,
         );
     }
 
-    private function handleCheckInByRecordId(int $id, string $eventKey, string $adminUsername, string $method): ResponseInterface
+    private function handleCheckInByRecordId(
+        int $id,
+        string $eventKey,
+        string $adminUsername,
+        string $method,
+        bool $previewOnly = false,
+    ): ResponseInterface
     {
         $eventKey = $this->normalizeEventKey($eventKey);
         if ($id < 1 || $eventKey === '') {
@@ -192,6 +308,8 @@ class AdminGuestController extends ApiController
             );
         }
 
+        $reportService = new RsvpReportService();
+
         $time = Time::now('Asia/Jakarta')->toDateTimeString();
         $timeField = $eventKey . '_checked_in_at';
         $userField = $eventKey . '_checked_in_by';
@@ -202,21 +320,69 @@ class AdminGuestController extends ApiController
                     ->setStatusCode(409)
                     ->setJSON([
                         'message' => 'This QR has already been used for ' . $this->formatEventLabel($eventKey) . '.',
-                        'record' => (new RsvpReportService())->getAdminRecordById((int) $record['id']),
+                        'record' => $reportService->getAdminRecordById((int) $record['id']),
                     ]),
             );
         }
 
-        $model->update((int) $record['id'], [
+        if ($previewOnly) {
+            return $this->withCors(
+                $this->response->setJSON([
+                    'message' => 'Guest is ready for ' . $this->formatEventLabel($eventKey) . ' check-in.',
+                    'record' => $reportService->getAdminRecordById((int) $record['id']),
+                    'previewOnly' => true,
+                ]),
+            );
+        }
+
+        $builder = $model->builder();
+        $builder->where('id', (int) $record['id']);
+        $builder->where($timeField, null);
+        $builder->update([
             $timeField => $time,
             $userField => $adminUsername . ' (' . $method . ')',
             'last_check_in_at' => $time,
         ]);
 
+        $affectedRows = $model->db->affectedRows();
+        if ($affectedRows < 1) {
+            $latestRecord = $reportService->getAdminRecordById((int) $record['id']);
+            if (($model->find((int) $record['id'])[$timeField] ?? null) !== null) {
+                return $this->withCors(
+                    $this->response
+                        ->setStatusCode(409)
+                        ->setJSON([
+                            'message' => 'This QR has already been used for ' . $this->formatEventLabel($eventKey) . '.',
+                            'record' => $latestRecord,
+                        ]),
+                );
+            }
+
+            return $this->withCors(
+                $this->response
+                    ->setStatusCode(500)
+                    ->setJSON([
+                        'message' => 'Check-in could not be saved.',
+                        'record' => $latestRecord,
+                    ]),
+            );
+        }
+
+        $updatedRecord = $reportService->getAdminRecordById((int) $record['id']);
+        if ($updatedRecord === null) {
+            return $this->withCors(
+                $this->response
+                    ->setStatusCode(500)
+                    ->setJSON([
+                        'message' => 'Check-in was saved, but the updated guest record could not be loaded.',
+                    ]),
+            );
+        }
+
         return $this->withCors(
             $this->response->setJSON([
                 'message' => 'Check-in successful for ' . $this->formatEventLabel($eventKey) . '.',
-                'record' => (new RsvpReportService())->getAdminRecordById((int) $record['id']),
+                'record' => $updatedRecord,
             ]),
         );
     }

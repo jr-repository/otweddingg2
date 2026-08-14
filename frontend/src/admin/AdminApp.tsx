@@ -1,26 +1,24 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import {
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  RefreshCcw,
-  ScanLine,
-  Users,
-} from "lucide-react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { Images, LayoutDashboard, LogOut, Menu, RefreshCcw, ScanLine, Users } from "lucide-react";
 
 import { AuthField, SidebarAction, SidebarButton, adminInputCls } from "@/admin/components/AdminUi";
 import { GuestDetailModal } from "@/admin/components/GuestDetailModal";
 import { GuestListPage } from "@/admin/pages/GuestListPage";
 import { OverviewPage } from "@/admin/pages/OverviewPage";
-import { ScannerPage } from "@/admin/pages/ScannerPage";
+import { PhotoboothPage } from "@/admin/pages/PhotoboothPage";
 import type {
   AdminRecord,
   AdminUser,
   AdminView,
   DashboardPayload,
+  PhotoboothRecord,
 } from "@/admin/types";
 import { EMPTY_SUMMARY } from "@/admin/utils";
 import { ADMIN_TOKEN_STORAGE_KEY, API_BASE_URL } from "@/lib/config";
+
+const ScannerPage = lazy(async () =>
+  import("@/admin/pages/ScannerPage").then((module) => ({ default: module.ScannerPage })),
+);
 
 const DEFAULT_ADMIN_USERNAME = "admin";
 const DEFAULT_ADMIN_PASSWORD = "LNA2027Admin!";
@@ -186,23 +184,22 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: (token: string, user: AdminUse
                 Compact wedding operations dashboard.
               </h1>
               <p className="mt-5 max-w-lg text-[13px] leading-relaxed text-ivory/74">
-                Manage RSVP guests, view QR guest passes, and run venue check-in from one admin area.
+                Manage RSVP guests, view QR guest passes, and run venue check-in from one admin
+                area.
               </p>
             </div>
 
             <div className="space-y-3">
-              {[
-                "Protected admin access",
-                "Unique QR guest passes",
-                "Live venue check-in flow",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[14px] border border-white/12 bg-white/6 px-4 py-3 text-[12px] text-ivory/82"
-                >
-                  {item}
-                </div>
-              ))}
+              {["Protected admin access", "Unique QR guest passes", "Live venue check-in flow"].map(
+                (item) => (
+                  <div
+                    key={item}
+                    className="rounded-[14px] border border-white/12 bg-white/6 px-4 py-3 text-[12px] text-ivory/82"
+                  >
+                    {item}
+                  </div>
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -273,26 +270,30 @@ function AdminWorkspace({
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
   const [attendingFilter, setAttendingFilter] = useState("all");
   const [eventFilter, setEventFilter] = useState("all");
+  const [photoboothRecords, setPhotoboothRecords] = useState<PhotoboothRecord[]>([]);
+  const [photoboothLoading, setPhotoboothLoading] = useState(false);
+  const [photoboothSearch, setPhotoboothSearch] = useState("");
+  const [photoboothEventFilter, setPhotoboothEventFilter] = useState("all");
   const [selectedGuest, setSelectedGuest] = useState<AdminRecord | null>(null);
   const [exporting, setExporting] = useState<"" | "excel" | "pdf">("");
+  const [generatingGuestId, setGeneratingGuestId] = useState<number | null>(null);
   const [sidebarCompact, setSidebarCompact] = useState(false);
 
   const loadDashboard = useCallback(
-    async (filters?: {
-      search?: string;
-      attending?: string;
-      event?: string;
-    }) => {
+    async (filters?: { search?: string; attending?: string; event?: string }) => {
       try {
         setLoading(true);
         setError("");
+        setNotice("");
 
         const params = new URLSearchParams();
         if (filters?.search) params.set("search", filters.search);
-        if (filters?.attending && filters.attending !== "all") params.set("attending", filters.attending);
+        if (filters?.attending && filters.attending !== "all")
+          params.set("attending", filters.attending);
         if (filters?.event && filters.event !== "all") params.set("event", filters.event);
 
         const response = await fetch(`${API_BASE_URL}/api/admin/dashboard?${params.toString()}`, {
@@ -319,9 +320,58 @@ function AdminWorkspace({
     [token],
   );
 
+  const loadPhotobooth = useCallback(
+    async (filters?: { search?: string; event?: string }) => {
+      try {
+        setPhotoboothLoading(true);
+        setError("");
+        setNotice("");
+
+        const params = new URLSearchParams();
+        if (filters?.search) params.set("search", filters.search);
+        if (filters?.event && filters.event !== "all") params.set("event", filters.event);
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/admin/photobooth/captures?${params.toString()}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        const data = (await response.json().catch(() => ({}))) as {
+          message?: string;
+          records?: PhotoboothRecord[];
+        };
+
+        if (!response.ok) {
+          throw new Error(data.message ?? "Unable to load photobooth results.");
+        }
+
+        setPhotoboothRecords(Array.isArray(data.records) ? data.records : []);
+      } catch (caughtError) {
+        setError(
+          caughtError instanceof Error ? caughtError.message : "Unable to load photobooth results.",
+        );
+      } finally {
+        setPhotoboothLoading(false);
+      }
+    },
+    [token],
+  );
+
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
+
+  useEffect(() => {
+    if (activeView !== "photobooth") {
+      return;
+    }
+
+    void loadPhotobooth({
+      search: photoboothSearch,
+      event: photoboothEventFilter,
+    });
+  }, [activeView, loadPhotobooth, photoboothEventFilter, photoboothSearch]);
 
   const filteredRecords = useMemo(() => {
     if (!dashboard) return [];
@@ -333,7 +383,8 @@ function AdminWorkspace({
       return {
         badge: "Guest Management",
         title: "Compact RSVP records",
-        description: "Search, filter, paginate, and open each guest QR detail without changing RSVP logic.",
+        description:
+          "Search, filter, paginate, and open each guest QR detail without changing RSVP logic.",
       };
     }
 
@@ -341,18 +392,37 @@ function AdminWorkspace({
       return {
         badge: "Venue Scanner",
         title: "Self check-in console",
-        description: "Run QR scanning and fallback manual search in one compact venue-ready screen.",
+        description:
+          "Run QR scanning and fallback manual search in one compact venue-ready screen.",
+      };
+    }
+
+    if (activeView === "photobooth") {
+      return {
+        badge: "Photobooth Gallery",
+        title: "Saved guest captures",
+        description:
+          "Review every final photobooth result that has already been saved by the scanner flow.",
       };
     }
 
     return {
       badge: "Wedding Operations",
       title: "Invitation control center",
-      description: "Monitor RSVP totals, recent activity, and scanner readiness from a smaller, easier-to-read admin view.",
+      description:
+        "Monitor RSVP totals, recent activity, and scanner readiness from a smaller, easier-to-read admin view.",
     };
   }, [activeView]);
 
   const handleRefresh = () => {
+    if (activeView === "photobooth") {
+      void loadPhotobooth({
+        search: photoboothSearch,
+        event: photoboothEventFilter,
+      });
+      return;
+    }
+
     void loadDashboard({
       search,
       attending: attendingFilter,
@@ -362,6 +432,15 @@ function AdminWorkspace({
 
   const handleFilterSubmit = (event: FormEvent) => {
     event.preventDefault();
+
+    if (activeView === "photobooth") {
+      void loadPhotobooth({
+        search: photoboothSearch,
+        event: photoboothEventFilter,
+      });
+      return;
+    }
+
     void loadDashboard({
       search,
       attending: attendingFilter,
@@ -372,6 +451,7 @@ function AdminWorkspace({
   const handleExport = async (kind: "excel" | "pdf") => {
     try {
       setExporting(kind);
+      setNotice("");
       const response = await fetch(`${API_BASE_URL}/reports/rsvp/${kind}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -418,6 +498,48 @@ function AdminWorkspace({
     [attendingFilter, eventFilter, loadDashboard, search],
   );
 
+  const handleGenerateGuestCode = useCallback(
+    async (record: AdminRecord) => {
+      if (record.guestCode || generatingGuestId !== null) {
+        return;
+      }
+
+      try {
+        setGeneratingGuestId(record.id);
+        setError("");
+        setNotice("");
+
+        const response = await fetch(
+          `${API_BASE_URL}/api/admin/guests/${record.id}/generate-pass`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const data = (await response.json().catch(() => ({}))) as {
+          message?: string;
+          record?: AdminRecord;
+        };
+
+        if (!response.ok || !data.record) {
+          throw new Error(data.message ?? "Guest code could not be generated.");
+        }
+
+        handleRecordUpdated(data.record);
+        setNotice(data.message ?? `Guest code for ${data.record.fullName} was generated.`);
+      } catch (caughtError) {
+        setError(
+          caughtError instanceof Error ? caughtError.message : "Guest code could not be generated.",
+        );
+      } finally {
+        setGeneratingGuestId(null);
+      }
+    },
+    [generatingGuestId, handleRecordUpdated, token],
+  );
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f7f1e7_0%,#fdfbf9_100%)] text-charcoal">
       <div className="flex min-h-screen flex-col lg:flex-row">
@@ -431,7 +553,9 @@ function AdminWorkspace({
               <p className="text-[0.62rem] font-medium uppercase tracking-[0.34em] text-ivory/66">
                 L &amp; A Admin
               </p>
-              {!sidebarCompact && <h1 className="mt-2 font-serif text-2xl leading-none">Dashboard</h1>}
+              {!sidebarCompact && (
+                <h1 className="mt-2 font-serif text-2xl leading-none">Dashboard</h1>
+              )}
             </div>
 
             <button
@@ -473,6 +597,13 @@ function AdminWorkspace({
               icon={<ScanLine className="h-4 w-4" />}
               label="Venue Scanner"
               onClick={() => onViewChange("scanner")}
+            />
+            <SidebarButton
+              active={activeView === "photobooth"}
+              compact={sidebarCompact}
+              icon={<Images className="h-4 w-4" />}
+              label="Photobooth"
+              onClick={() => onViewChange("photobooth")}
             />
           </nav>
 
@@ -542,6 +673,12 @@ function AdminWorkspace({
               </div>
             )}
 
+            {notice && (
+              <div className="mt-4 rounded-[14px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-[12px] text-emerald-700">
+                {notice}
+              </div>
+            )}
+
             <div className="mt-4">
               {activeView === "overview" && (
                 <OverviewPage
@@ -564,14 +701,36 @@ function AdminWorkspace({
                   onEventFilterChange={setEventFilter}
                   onSubmitFilters={handleFilterSubmit}
                   onSelectGuest={setSelectedGuest}
+                  onGenerateGuestCode={handleGenerateGuestCode}
+                  generatingGuestId={generatingGuestId}
                 />
               )}
 
               {activeView === "scanner" && dashboard && (
-                <ScannerPage
-                  token={token}
-                  records={dashboard.records}
-                  onRecordUpdated={handleRecordUpdated}
+                <Suspense
+                  fallback={
+                    <div className="rounded-[20px] border border-[rgba(200,182,153,0.28)] bg-white/92 px-4 py-8 text-center text-[12px] text-muted-foreground shadow-[0_20px_50px_-36px_rgba(63,47,37,0.16)]">
+                      Loading venue scanner...
+                    </div>
+                  }
+                >
+                  <ScannerPage
+                    token={token}
+                    records={dashboard.records}
+                    onRecordUpdated={handleRecordUpdated}
+                  />
+                </Suspense>
+              )}
+
+              {activeView === "photobooth" && (
+                <PhotoboothPage
+                  loading={photoboothLoading}
+                  records={photoboothRecords}
+                  search={photoboothSearch}
+                  eventFilter={photoboothEventFilter}
+                  onSearchChange={setPhotoboothSearch}
+                  onEventFilterChange={setPhotoboothEventFilter}
+                  onSubmitFilters={handleFilterSubmit}
                 />
               )}
             </div>
@@ -579,7 +738,9 @@ function AdminWorkspace({
         </main>
       </div>
 
-      {selectedGuest && <GuestDetailModal record={selectedGuest} onClose={() => setSelectedGuest(null)} />}
+      {selectedGuest && (
+        <GuestDetailModal record={selectedGuest} onClose={() => setSelectedGuest(null)} />
+      )}
     </div>
   );
 }

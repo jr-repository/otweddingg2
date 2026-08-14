@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Search } from "lucide-react";
+import { RefreshCcw, Search } from "lucide-react";
 
 import { PaginationControls, SelectField, adminInputCls } from "@/admin/components/AdminUi";
 import type { AdminRecord } from "@/admin/types";
@@ -17,6 +17,8 @@ export function GuestListPage({
   onEventFilterChange,
   onSubmitFilters,
   onSelectGuest,
+  onGenerateGuestCode,
+  generatingGuestId,
 }: {
   loading: boolean;
   records: AdminRecord[];
@@ -28,6 +30,8 @@ export function GuestListPage({
   onEventFilterChange: (value: string) => void;
   onSubmitFilters: (event: FormEvent) => void;
   onSelectGuest: (record: AdminRecord) => void;
+  onGenerateGuestCode: (record: AdminRecord) => void;
+  generatingGuestId: number | null;
 }) {
   const [page, setPage] = useState(1);
 
@@ -116,7 +120,10 @@ export function GuestListPage({
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-[12px] text-muted-foreground">
+                  <td
+                    colSpan={7}
+                    className="px-3 py-8 text-center text-[12px] text-muted-foreground"
+                  >
                     Loading guest list…
                   </td>
                 </tr>
@@ -124,7 +131,10 @@ export function GuestListPage({
 
               {!loading && paginatedRecords.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-[12px] text-muted-foreground">
+                  <td
+                    colSpan={7}
+                    className="px-3 py-8 text-center text-[12px] text-muted-foreground"
+                  >
                     No guests found for this view.
                   </td>
                 </tr>
@@ -137,15 +147,35 @@ export function GuestListPage({
                       {rowStart + index}
                     </td>
                     <td className="border-t border-[rgba(200,182,153,0.16)] px-3 py-3">
-                      <button type="button" onClick={() => onSelectGuest(record)} className="text-left">
-                        <span className="block text-[12px] font-medium text-charcoal">{record.fullName}</span>
+                      <button
+                        type="button"
+                        onClick={() => onSelectGuest(record)}
+                        className="text-left"
+                      >
+                        <span className="block text-[12px] font-medium text-charcoal">
+                          {record.fullName}
+                        </span>
                         <span className="mt-0.5 block text-[11px] text-muted-foreground">
                           Submitted {record.submittedAtLabel}
                         </span>
                       </button>
                     </td>
                     <td className="border-t border-[rgba(200,182,153,0.16)] px-3 py-3 text-[11px] uppercase tracking-[0.16em] text-taupe">
-                      {record.guestCode}
+                      {record.guestCode ? (
+                        record.guestCode
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onGenerateGuestCode(record)}
+                          disabled={generatingGuestId === record.id}
+                          className="inline-flex items-center gap-2 rounded-full border border-[rgba(200,182,153,0.34)] bg-cream/60 px-3 py-2 text-[0.58rem] font-medium uppercase tracking-[0.18em] text-charcoal transition-colors hover:bg-cream disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          {generatingGuestId === record.id ? (
+                            <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                          ) : null}
+                          {generatingGuestId === record.id ? "Generating..." : "Generate Code"}
+                        </button>
+                      )}
                     </td>
                     <td className="border-t border-[rgba(200,182,153,0.16)] px-3 py-3 text-[12px] text-muted-foreground">
                       <div>{record.email}</div>
@@ -153,7 +183,9 @@ export function GuestListPage({
                     </td>
                     <td className="border-t border-[rgba(200,182,153,0.16)] px-3 py-3 text-[12px] text-charcoal">
                       <div>{record.attendingLabel}</div>
-                      <div className="mt-1 text-[11px] text-muted-foreground">{record.guestsLabel}</div>
+                      <div className="mt-1 text-[11px] text-muted-foreground">
+                        {record.guestsLabel}
+                      </div>
                     </td>
                     <td className="border-t border-[rgba(200,182,153,0.16)] px-3 py-3 text-[12px] text-muted-foreground">
                       {record.eventsLabel}

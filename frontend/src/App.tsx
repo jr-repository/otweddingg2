@@ -106,7 +106,16 @@ export default function App() {
   useReveal();
 
   const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
-  if (pathname.startsWith("/admin") || pathname.startsWith("/dashboard")) {
+  if (typeof window !== "undefined" && pathname.startsWith("/dashboard")) {
+    const nextPath = pathname.replace(/^\/dashboard/, "/reports") || "/reports";
+    window.history.replaceState(
+      {},
+      "",
+      `${nextPath}${window.location.search}${window.location.hash}`,
+    );
+  }
+
+  if (pathname.startsWith("/admin") || pathname.startsWith("/reports")) {
     return <AdminApp />;
   }
 
@@ -168,9 +177,7 @@ function BackgroundMusic() {
     };
   }, [hasStarted]);
 
-  return (
-    <audio ref={audioRef} src={BACKSOUND_SRC} loop preload="auto" />
-  );
+  return <audio ref={audioRef} src={BACKSOUND_SRC} loop preload="auto" />;
 }
 
 function ReportDashboard() {
@@ -673,7 +680,9 @@ function Details() {
                     key={item.label}
                     className={[
                       "relative flex min-h-[220px] flex-col items-center justify-center px-5 py-8 text-center sm:min-h-[240px] sm:px-8 sm:py-10 md:min-h-[270px] md:px-10 lg:min-h-[290px]",
-                      index !== items.length - 1 ? "border-b border-champagne/18 lg:border-b-0 lg:border-r" : "",
+                      index !== items.length - 1
+                        ? "border-b border-champagne/18 lg:border-b-0 lg:border-r"
+                        : "",
                     ].join(" ")}
                   >
                     <span className="absolute inset-x-10 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,170,129,0.55),transparent)]" />
@@ -1181,8 +1190,8 @@ function Rsvp() {
                   ))}
                 </div>
                 <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                  Teenagers are welcome and
-                  should submit a separate RSVP together with their parents.
+                  Teenagers are welcome and should submit a separate RSVP together with their
+                  parents.
                 </p>
                 {errors.guests && <p className="mt-2 text-xs text-destructive">{errors.guests}</p>}
               </fieldset>

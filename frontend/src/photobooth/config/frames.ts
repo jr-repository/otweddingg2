@@ -1,0 +1,98 @@
+import type { PhotoboothFrameConfig } from "@/photobooth/types";
+
+export const PHOTO_FRAMES: PhotoboothFrameConfig[] = [
+  {
+    id: "none",
+    name: "None",
+    borderColor: "transparent",
+    accentColor: "#d2c5b6",
+    backgroundColor: "transparent",
+    footerBackground: "rgba(255,255,255,0.18)",
+    footerText: "#ffffff",
+  },
+  {
+    id: "white",
+    name: "White",
+    borderColor: "#fffaf4",
+    accentColor: "#f0dfcf",
+    backgroundColor: "#fffdfb",
+    footerBackground: "#fffaf4",
+    footerText: "#342922",
+  },
+  {
+    id: "black",
+    name: "Black",
+    borderColor: "#1c1714",
+    accentColor: "#6f5c4f",
+    backgroundColor: "#241d18",
+    footerBackground: "#1c1714",
+    footerText: "#f7efe8",
+  },
+  {
+    id: "minimal",
+    name: "Minimal",
+    borderColor: "#ebe0d3",
+    accentColor: "#ccb69f",
+    backgroundColor: "#fffdfa",
+    footerBackground: "#fffdfa",
+    footerText: "#2f251f",
+  },
+  {
+    id: "pink",
+    name: "Pink",
+    borderColor: "#ffd9e8",
+    accentColor: "#f39bbe",
+    backgroundColor: "#fff8fb",
+    footerBackground: "#ffe5ef",
+    footerText: "#6e3e55",
+  },
+  {
+    id: "blue",
+    name: "Blue",
+    borderColor: "#d8ebff",
+    accentColor: "#7cb0e5",
+    backgroundColor: "#f8fcff",
+    footerBackground: "#e2f0ff",
+    footerText: "#355574",
+  },
+  {
+    id: "retro",
+    name: "Retro",
+    borderColor: "#d6bf9a",
+    accentColor: "#8c5f34",
+    backgroundColor: "#f7f0e3",
+    footerBackground: "#d9c1a0",
+    footerText: "#4e321a",
+  },
+  {
+    id: "film",
+    name: "Film",
+    borderColor: "#f5ede1",
+    accentColor: "#a67f58",
+    backgroundColor: "#14110f",
+    footerBackground: "#f5ede1",
+    footerText: "#271f18",
+  },
+  {
+    id: "polaroid",
+    name: "Polaroid",
+    borderColor: "#fffdf9",
+    accentColor: "#c9aa85",
+    backgroundColor: "#fffdf9",
+    footerBackground: "#fffdf9",
+    footerText: "#2d221a",
+  },
+  {
+    id: "event",
+    name: "Event",
+    borderColor: "#f3e8d4",
+    accentColor: "#bf945b",
+    backgroundColor: "#fffaf3",
+    footerBackground: "#f3e8d4",
+    footerText: "#52381e",
+  },
+];
+
+export function getPhotoFrame(id: PhotoboothFrameConfig["id"]) {
+  return PHOTO_FRAMES.find((frame) => frame.id === id) ?? PHOTO_FRAMES[8];
+}
